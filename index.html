@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%220%22 fill=%22%23007aff%22/><text y=%22.9em%22 font-size=%2270%22 fill=%22%23fff%22 font-family=%22monospace%22 font-weight=%22bold%22 x=%2215%22>M4</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23007aff%22/><text y=%22.9em%22 font-size=%2270%22 fill=%22%23fff%22 font-family=%22monospace%22 font-weight=%22bold%22 x=%2215%22>M4</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <style>
@@ -28,114 +28,86 @@
             --btn-red-bg: #000; --btn-red-border: #fff; --btn-red-text: #fff;
             --border-style: dashed;
         }
-        /* Experimental UI Accents */
-        [data-exp="true"] { --blur: 15px; --glass: rgba(255,255,255,0.05); --radius: 12px !important; }
-
+        [data-exp="true"] { --blur: 20px; --glass: rgba(255,255,255,0.05); --radius: 20px !important; }
         body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
-        
-        #sidebar { 
-            width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); 
-            display: flex; flex-direction: column; padding: 20px; z-index: 100; box-sizing: border-box; 
-            height: 100dvh; backdrop-filter: blur(var(--blur)); background-color: var(--glass);
-        }
+        #sidebar { width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); display: flex; flex-direction: column; padding: 20px; z-index: 1000; box-sizing: border-box; height: 100dvh; backdrop-filter: blur(var(--blur)); background-color: var(--glass); }
         #logo-container { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
         #logo-icon { width: 35px; height: 35px; background: var(--hl); color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.2em; }
         #logo-text { font-weight: 900; font-size: 1.4em; letter-spacing: -1px; }
-        
         #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; width: 100%; }
-        .section-title { color: var(--text-dim); font-size: 0.75em; margin: 10px 0 10px 0; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
-        
-        .scroll-list { overflow-y: auto; max-height: 30vh; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; border-radius: var(--radius); }
+        .section-title { color: var(--text-dim); font-size: 0.75em; margin: 20px 0 10px 0; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
+        .scroll-list { overflow-y: auto; max-height: 35vh; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; border-radius: var(--radius); }
         .list-item { padding: 12px; cursor: pointer; border-bottom: 1px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; transition: 0.2s; }
         .active-chan { background: var(--hl); color: #fff; border-left: 5px solid var(--hl-border); font-weight: 800; }
-        
-        /* THE RUN BUTTON FIX */
-        .btn, input, #send-btn, #btn-run { border-radius: var(--radius) !important; transition: 0.2s; border: 2px var(--border-style) var(--border); font-family: inherit; }
+        .btn, input, #send-btn { border-radius: var(--radius) !important; transition: 0.2s; border: 2px var(--border-style) var(--border); font-family: inherit; }
         .btn { background: var(--panel); color: var(--text); padding: 10px; cursor: pointer; width: 100%; margin-bottom: 5px; font-weight: bold; }
         .btn-red { background: var(--btn-red-bg); border-color: var(--btn-red-border); color: var(--btn-red-text); }
-        
         #chat { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .msg { padding: 10px 14px; max-width: 85%; line-height: 1.4em; word-wrap: break-word; transition: 0.2s; position: relative; font-size: 1em; border: 2px var(--border-style) var(--border); }
-        .msg-mine { align-self: flex-end; background: var(--msg-mine); color: #fff; }
-        .msg-other { align-self: flex-start; background: var(--msg-other); border: 1px solid var(--border); }
-        .msg-system { align-self: center; background: none !important; border: none !important; font-family: monospace; font-size: 0.85em; color: var(--text-dim); white-space: pre; }
-
+        .msg { padding: 10px 14px; border-radius: 20px; max-width: 85%; line-height: 1.4em; word-wrap: break-word; transition: 0.2s; position: relative; font-size: 1em; border: 2px var(--border-style) var(--border); }
+        .msg-mine { align-self: flex-end; background: var(--msg-mine); color: #fff; border-bottom-right-radius: 4px !important; }
+        .msg-other { align-self: flex-start; background: var(--msg-other); border: 1px solid var(--border); border-bottom-left-radius: 4px !important; }
+        .msg-pending { opacity: 0.5; filter: blur(1px); }
+        .msg-system { align-self: center; background: none !important; border: none !important; font-family: monospace; font-size: 0.85em; color: var(--text-dim); white-space: pre; text-align: left; }
         #message { flex-grow: 1; background: var(--input-bg); color: var(--text); padding: 12px; font-size: 16px; outline: none; }
         #send-btn { background: var(--hl-border); color: #fff; padding: 0 20px; font-weight: bold; cursor: pointer; border: none !important; }
-
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(15px); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(15px); }
         .modal-box { background: var(--bg); border: 4px var(--border-style) var(--hl-border); padding: 30px; width: 420px; max-width: 85%; color: var(--text); border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
-        
         .stats-table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 0.85em; margin-top: 15px; }
-        .stats-table td { padding: 8px; border: 1px var(--border-style) var(--border); text-align: left; }
-
+        .stats-table td { padding: 8px; border: 1px var(--border-style) var(--border); }
         #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; display: none; }
-
-        @media (max-width: 768px) {
-            #mobile-header { display: flex; }
-            #sidebar { position: fixed; top: 50px; left: 0; bottom: 0; transform: translateX(-100%); width: 280px; box-shadow: 20px 0 50px rgba(0,0,0,0.3); border-radius: 0; }
-            #sidebar.open { transform: translateX(0); }
-            #main { width: 100vw; height: calc(100dvh - 50px); }
-        }
+        @media (max-width: 768px) { #mobile-header { display: flex; } #sidebar { position: fixed; top: 50px; left: 0; bottom: 0; transform: translateX(-100%); width: 280px; box-shadow: 20px 0 50px rgba(0,0,0,0.3); border-radius: 0; } #sidebar.open { transform: translateX(0); } #main { width: 100vw; height: calc(100dvh - 50px); } }
     </style>
 </head>
 <body data-theme="light" data-exp="false">
     <canvas id="snow-canvas"></canvas>
-
-    <div id="mobile-header">
-        <div onclick="toggleSidebar()" style="font-size: 1.5em; cursor: pointer; padding: 0 10px;">☰</div>
-        <div style="font-weight:900;">M4messenger</div>
-        <div style="width:30px;"></div>
-    </div>
+    <div id="mobile-header"><div onclick="toggleSidebar()" style="font-size: 1.5em; cursor: pointer; padding: 0 10px;">☰</div><div style="font-weight:900;">M4messenger</div><div style="width:30px;"></div></div>
     
     <div id="sidebar">
         <div id="logo-container"><div id="logo-icon">M4</div><div id="logo-text">messenger</div></div>
         <div id="my-name" onclick="startRenaming()" style="font-weight:900; font-size:1.1em; margin-bottom:20px; cursor:pointer; opacity:0.8;">Guest</div>
-        
-        <div class="section-title"><span id="lbl-rooms">ROOMS</span> <span onclick="openModal('create-room')" style="cursor:pointer; color:var(--hl);">[+]</span></div>
+        <div class="section-title">ROOMS <span onclick="openModal('create-room')" style="cursor:pointer; color:var(--hl);">[+]</span></div>
         <div id="room-list" class="scroll-list"></div>
         <div class="section-title">PEERS (MESH)</div>
         <div id="user-list" class="scroll-list"></div>
         <div id="bottom-panel">
-            <div id="auth-btns">
-                <button class="btn" onclick="openModal('login')" id="btn-login">Login</button>
-                <button class="btn" onclick="openModal('register')" id="btn-register">Register</button>
-            </div>
-            <div id="account-btns" style="display:none;">
-                <button class="btn btn-red" onclick="logout()">Logout</button>
-            </div>
+            <div id="auth-btns"><button class="btn" onclick="openModal('login')">Login</button><button class="btn" onclick="openModal('register')">Register</button></div>
+            <div id="account-btns" style="display:none;"><button class="btn btn-red" onclick="logout()">Logout</button></div>
             <form onsubmit="event.preventDefault(); runCode();" style="margin-top:10px; display:flex; gap:5px;">
                 <input type="search" id="code-in" placeholder="Command..." autocomplete="off" style="flex-grow:1; background:var(--input-bg); border:2px var(--border-style) var(--border); color:var(--text); padding:10px; font-size:14px;">
-                <button type="submit" id="btn-run" style="background:var(--hl); color:#fff; border:none; padding:10px 15px; cursor:pointer; font-weight:800;">RUN</button>
+                <button type="submit" style="background:var(--hl); color:#fff; border:none; padding:10px 15px; cursor:pointer; font-weight:800;">RUN</button>
             </form>
             <div id="cmd-feedback"></div>
         </div>
     </div>
 
     <div id="main">
-        <div id="chat-header" style="padding: 15px 30px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center;"><span id="header-text" style="font-weight:900; font-size:1.3em;">#GENERAL</span><div style="font-size:0.7em; color:var(--text-dim);">P2P MESH</div></div>
+        <div id="chat-header" style="padding: 15px 30px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center;"><span id="header-text" style="font-weight:900; font-size:1.3em;">#GENERAL</span><div style="font-size:0.7em; color:var(--text-dim);">P2P BACKBONE</div></div>
         <div id="chat"></div>
         <form id="controls-form" onsubmit="event.preventDefault(); send();" style="padding: 15px; background: var(--panel); border-top: 2px var(--border-style) var(--border); display: flex; gap: 10px;"><input type="search" id="message" placeholder="Message..." autocomplete="off"><button id="send-btn" type="submit">SEND</button></form>
     </div>
 
-    <!-- MODALS -->
     <div id="modal-login" class="modal"><div class="modal-box"><h3>LOGIN</h3><input id="l-u" placeholder="User"><input id="l-p" type="password" placeholder="Pass"><button class="btn" onclick="auth('login')">ENTER</button><button class="btn btn-red" onclick="closeModals()">CANCEL</button></div></div>
     <div id="modal-register" class="modal"><div class="modal-box"><h3>REGISTER</h3><input id="r-u" placeholder="User"><input id="r-p" type="password" placeholder="Pass"><button class="btn" onclick="auth('register')">CREATE</button><button class="btn btn-red" onclick="closeModals()">CANCEL</button></div></div>
     <div id="modal-create-room" class="modal"><div class="modal-box"><h3>NEW ROOM</h3><input id="new-room-name" placeholder="Name"><button class="btn" onclick="createRoom()">CREATE</button><button class="btn btn-red" onclick="closeModals()">CANCEL</button></div></div>
-    <div id="modal-stats" class="modal"><div class="modal-box" style="width:500px;"><h3>SYSTEM STATUS</h3><div id="stats-container"></div><button class="btn btn-red" onclick="closeModals()" style="margin-top:20px;">CLOSE</button></div></div>
-    <div id="modal-megahelp" class="modal"><div class="modal-box" style="width:450px;"><h3>COMMANDS</h3><div style="font-size:0.95em; line-height:2.1em;"><b>stats</b>: Status table<br><b>exp</b>: Toggle Aesthetic UI<br><b>soft / snow</b>: Effects<br><b>clean</b>: Wipe screen & data<br><b>theme</b>: Theme Picker<br><b>rus / eng</b>: Language<br><b>nick @user Name</b>: Personal Alias<br><b>default [cmd;cmd]</b>: Set Global Defaults</div><button class="btn btn-red" onclick="closeModals()" style="margin-top:25px; border:none; background:var(--hl); color:#fff;">CLOSE</button></div></div>
+    <div id="modal-themes" class="modal"><div class="modal-box"><h3>THEMES</h3><button class="btn" onclick="runCode('light');closeModals()">LIGHT</button><button class="btn" onclick="runCode('dark');closeModals()" style="background:#000; color:#0f0; border:none;">DARK</button><button class="btn" onclick="runCode('text');closeModals()" style="background:#000; color:#fff; border:1px solid #fff;">TEXT (| _)</button><button class="btn btn-red" onclick="closeModals()">CLOSE</button></div></div>
+    <div id="modal-stats" class="modal"><div class="modal-box" style="width:500px;"><h3>STATUS</h3><div id="stats-container"></div><button class="btn btn-red" onclick="closeModals()">CLOSE</button></div></div>
+    <div id="modal-megahelp" class="modal"><div class="modal-box" style="width:450px;"><h3>COMMANDS</h3><div style="font-size:0.95em; line-height:2.1em;"><b>stats</b>: Status table<br><b>exp</b>: Aesthetic UI<br><b>soft / snow</b>: Effects<br><b>clean</b>: Wipe screen<br><b>theme</b>: Themes<br><b>rus / eng</b>: Lang<br><b>nick @user Name</b>: Alias</div><button class="btn btn-red" onclick="closeModals()">CLOSE</button></div></div>
 
     <script>
-        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+        const relays = ['https://gun-manhattan.herokuapp.com/gun', 'https://peer.wall.org/gun', 'https://gundb.herokuapp.com/gun'];
+        const gun = Gun(relays);
         const user = gun.user().recall({storage: true});
-        const globalRef = gun.get('m4messenger_mesh_v10_final');
 
         let myName = localStorage.getItem('m4_name') || "anon#" + Math.floor(Math.random()*9999);
         let currentTarget = "#GENERAL";
-        let currentLang = 'en';
-        let userAliases = {};
+        let isRegistered = false;
 
-        // --- AUTH ---
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); }
+        function openModal(id) { closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; }
+        function startRenaming() { if(isRegistered) return; const el = document.getElementById('my-name'); if(el.querySelector('input')) return; const cur = el.innerText; el.innerHTML = `<input id="rename-input" value="${cur}" onblur="finishRename()" onkeypress="if(event.key==='Enter') finishRename()">`; document.getElementById('rename-input').focus(); }
+        function finishRename() { const i = document.getElementById('rename-input'); if(i) { const n = i.value.trim(); if(n) { myName=n; localStorage.setItem('m4_name',n); } document.getElementById('my-name').innerText = myName; } }
+
         function auth(type) {
             const u = document.getElementById(type === 'login' ? 'l-u' : 'r-u').value;
             const p = document.getElementById(type === 'login' ? 'l-p' : 'r-p').value;
@@ -145,101 +117,40 @@
         }
         function logout() { user.leave(); localStorage.removeItem('m4_name'); location.reload(); }
 
-        // --- UI UTILS ---
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-        function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); }
-        function openModal(id) { closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; }
-        
-        function startRenaming() {
-            if(user.is) return;
-            const el = document.getElementById('my-name');
-            if(el.querySelector('input')) return;
-            const cur = el.innerText;
-            el.innerHTML = `<input id="rename-input" value="${cur}" onblur="finishRename()" onkeypress="if(event.key==='Enter') finishRename()">`;
-            document.getElementById('rename-input').focus();
-        }
-        function finishRename() {
-            const n = document.getElementById('rename-input').value.trim();
-            if(n) { myName = n; localStorage.setItem('m4_name', n); }
-            document.getElementById('my-name').innerText = myName;
-        }
-
-        socket.on('welcome', data => {
-            myName = data.username; document.getElementById('my-name').innerText = myName;
-            userAliases = data.aliases || {}; applyTheme(data.theme); applySoft(data.soft); applySnow(data.snow); 
-            document.body.setAttribute('data-exp', data.exp === 'true');
-            if(data.apply_defaults) runCode(data.apply_defaults);
-            setLanguage(data.lang || 'en');
-        });
-
-        // --- MESSAGING ---
         function send() {
             const i = document.getElementById('message'); if(!i.value) return;
             const lId = Date.now();
             const data = { from: myName, msg: i.value, time: lId, channel: currentTarget, localId: lId };
             drawMessage(data, true);
-            gun.get('m4_mesh_v12').get(currentTarget).set(data);
+            gun.get('m4_mesh_v15').get(currentTarget).set(data);
             i.value = "";
         }
 
-        gun.get('m4_mesh_v12').get(currentTarget).map().on((data) => {
-            if(!data) return;
-            const ex = document.getElementById('msg-' + data.localId);
-            if(ex) ex.classList.remove('msg-pending');
-            else drawMessage(data);
+        gun.get('m4_mesh_v15').get(currentTarget).map().on((data) => {
+            if(!data || document.getElementById('msg-' + (data.localId || data.time))) return;
+            const chat = document.getElementById('chat'); const div = document.createElement('div');
+            const isMe = data.from === myName;
+            div.id = 'msg-' + (data.localId || data.time);
+            div.className = (data.from === 'SYSTEM') ? 'msg msg-system' : 'msg ' + (isMe ? 'msg-mine' : 'msg-other');
+            let content = (!isMe && data.from !== 'SYSTEM') ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${data.from}</span>` : "";
+            div.innerHTML = content + data.msg; chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
         });
 
-        function drawMessage(d, isP=false) {
-            if(!d.time || (document.getElementById(d.time) && !isP)) return;
-            const chat = document.getElementById('chat'); const div = document.createElement('div');
-            div.id = isP ? 'msg-'+d.localId : d.time;
-            const isMe = d.from === myName;
-            div.className = (d.from === 'SYSTEM') ? 'msg msg-system' : 'msg ' + (isMe ? 'msg-mine' : 'msg-other') + (isP ? ' msg-pending' : '');
-            let n = userAliases[d.from] ? `${userAliases[d.from]} (@${d.from})` : d.from;
-            let c = (!isMe && d.from !== 'SYSTEM') ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${n}</span>` : "";
-            div.innerHTML = c + d.msg.replace(new RegExp(`@${myName}\\b`, 'gi'), `<span class="mention">@${myName}</span>`);
-            chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
-        }
-
-        // --- STATS WINDOW ---
-        function showStats() {
-            globalRef.get('defaults').once(g => {
-                const container = document.getElementById('stats-container');
-                const gStr = g || "None";
-                const isExp = document.body.getAttribute('data-exp') === 'true';
-                const isSoft = document.documentElement.style.getPropertyValue('--radius') !== '0px';
-                function r(label, key, you) { return `<tr><td>${label}</td><td style="color:${gStr.includes(key)?'var(--hl)':'#888'}">${gStr.includes(key)?'ON':'OFF'}</td><td style="color:${you?'var(--hl)':'#888'}">${you?'ON':'OFF'}</td></tr>`; }
-                container.innerHTML = `<table class="stats-table"><thead><tr><th>Feature</th><th>Global</th><th>You</th></tr></thead><tbody>${r('Exp UI','exp',isExp)}${r('Soft Edges','soft',isSoft)}${r('Snowing','snow',false)}</tbody></table><div style="margin-top:10px; font-size:0.7em; opacity:0.5;">Mesh defaults: ${gStr}</div>`;
-                openModal('stats');
-            });
-        }
-
-        // --- COMMAND ENGINE ---
-        window.cmd = runCode;
         function runCode(manual = null) {
             const i = document.getElementById('code-in');
-            const full = (manual || i.value).trim();
-            full.split(';').forEach(raw => {
-                const c = raw.trim().toLowerCase();
-                if(c === 'light' || c === 'dark' || c === 'text') applyTheme(c);
-                if(c === 'soft') applySoft('true');
-                if(c === 'exp') document.body.setAttribute('data-exp', 'true');
-                if(c === 'stats') showStats();
-                if(c === 'megahelp') openModal('megahelp');
-                if(c === 'clean') { localStorage.clear(); location.reload(); }
-                if(c.startsWith('default ')) globalRef.get('defaults').put(raw.substring(8).trim());
-                if(c.startsWith('join ')) switchChannel(raw.substring(5).trim().toUpperCase());
-            });
+            const code = (manual || i.value).trim().toLowerCase();
+            if(['light','dark','text'].includes(code)) { document.body.setAttribute('data-theme', code); localStorage.setItem('m4_theme', code); }
+            if(code === 'clean') { localStorage.clear(); location.reload(); }
+            if(code === 'megahelp') openModal('megahelp');
+            if(code === 'stats') {
+                let statusHtml = `<table class="stats-table"><tr><td>Peers Joined</td><td>${relays.length}</td></tr><tr><td>Identity</td><td>${isRegistered?'Reg':'Anon'}</td></tr></table>`;
+                document.getElementById('stats-container').innerHTML = statusHtml;
+                openModal('stats');
+            }
             i.value = "";
         }
 
-        function applyTheme(t) { t==='light' ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', t); }
-        function applySoft(v) { document.documentElement.style.setProperty('--radius', v === 'true' ? '18px' : '0px'); }
-        function setLanguage(l) { currentLang = l; const t = trans[l] || trans.en; ['lbl-rooms','btn-login','btn-register','send-btn'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = t[id.replace('btn-','').replace('lbl-','')]; }); }
-        function switchChannel(t) { currentTarget = t; document.getElementById('header-text').innerText = userAliases[t] ? `${userAliases[t]} (@${t})` : t; document.getElementById('sidebar').classList.remove('open'); document.getElementById('chat').innerHTML=""; }
-
-        // Init
-        if(user.is) { document.getElementById('auth-btns').style.display='none'; document.getElementById('account-btns').style.display='block'; myName = user.is.alias; }
+        if(user.is) { document.getElementById('auth-btns').style.display='none'; document.getElementById('account-btns').style.display='block'; myName = user.is.alias; isRegistered = true; }
         document.getElementById('my-name').innerText = myName;
         document.body.setAttribute('data-theme', localStorage.getItem('m4_theme') || 'light');
     </script>
