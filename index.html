@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>M4messenger P2P</title>
+    
+    <!-- P2P Mesh Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
+
+    <style>
+        :root { 
+            --bg: #ffffff; --panel: #f2f2f7; --border: #d1d1d6; --text: #000; --text-dim: #8e8e93; 
+            --hl: #007aff; --hl-bg: #e5e5ea; --warn: #ff3b30; --input-bg: #fff; 
+            --msg-mine: #007aff; --msg-other: #e9e9eb; --mention: #ff9500;
+            --btn-red-bg: #ffeef0; --btn-red-border: #ffccc7; --btn-red-text: #ff4d4f;
+            --radius: 0px; --blur: 0px; --glass: transparent; --border-style: solid;
+        }
+        [data-theme="dark"] {
+            --bg: #000; --panel: #1c1c1e; --border: #38383a; --text: #32d74b; --text-dim: #1c541c; 
+            --hl: #32d74b; --hl-bg: #1c1c1e; --warn: #ff453a; --input-bg: #1c1c1e; 
+            --msg-mine: #1c541c; --msg-other: #2c2c2e; --mention: #ffd60a;
+            --btn-red-bg: #2c0000; --btn-red-border: #500; --btn-red-text: #ff453a;
+        }
+        /* SYMBOL THEME (| _) */
+        [data-theme="text"] {
+            --bg: #000; --panel: #000; --border: #fff; --text: #fff; --text-dim: #888; 
+            --hl: #fff; --hl-bg: #222; --warn: #fff; --input-bg: #000; 
+            --msg-mine: #000; --msg-other: #000; --mention: #fff;
+            --btn-red-bg: #000; --btn-red-border: #fff; --btn-red-text: #fff;
+            --border-style: dashed;
+        }
+        /* EXP UI ACCENTS */
+        [data-exp="true"] { --blur: 20px; --glass: rgba(255,255,255,0.05); --radius: 20px !important; }
+
+        body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
+        #sidebar { 
+            width: 280px; min-width: 280px; background: var(--panel); border-right: 2px var(--border-style) var(--border); 
+            display: flex; flex-direction: column; padding: 15px; z-index: 100; box-sizing: border-box; 
+            height: 100dvh; backdrop-filter: blur(var(--blur)); background-color: var(--glass);
+        }
+        #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; width: 100%; }
+        .scroll-list { overflow-y: auto; max-height: 35vh; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; border-radius: var(--radius); }
+        .list-item { padding: 12px; cursor: pointer; border-bottom: 1px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
+        .active-chan { background: var(--hl); color: #fff; border-left: 5px solid var(--hl-border); font-weight: 800; }
+        .btn, input, #send-btn { border-radius: var(--radius) !important; transition: 0.2s; border: 2px var(--border-style) var(--border); }
+        .btn { background: var(--panel); color: var(--text); padding: 10px; cursor: pointer; width: 100%; margin-bottom: 5px; font-weight: bold; font-family: inherit; }
+        .btn-red { background: var(--btn-red-bg); border-color: var(--btn-red-border); color: var(--btn-red-text); }
+        #chat { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 10px 14px; border-radius: 20px; max-width: 85%; line-height: 1.4em; word-wrap: break-word; position: relative; font-size: 1em; border: 2px var(--border-style) var(--border); }
+        .msg-mine { align-self: flex-end; background: var(--msg-mine); color: #fff; border-bottom-right-radius: 4px !important; }
+        .msg-other { align-self: flex-start; background: var(--msg-other); border: 1px solid var(--border); border-bottom-left-radius: 4px !important; }
+        #message { flex-grow: 1; background: var(--input-bg); color: var(--text); padding: 12px; font-size: 16px; outline: none; }
+        #send-btn { background: var(--hl-border); color: #fff; padding: 0 20px; font-weight: bold; cursor: pointer; border: none !important; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(15px); }
+        .modal-box { background: var(--bg); border: 2px var(--border-style) var(--hl-border); padding: 30px; width: 420px; max-width: 85%; color: var(--text); border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
+        @media (max-width: 768px) { #sidebar { position: fixed; top: 0; left: 0; bottom: 0; transform: translateX(-100%); width: 280px; } #sidebar.open { transform: translateX(0); } }
+    </style>
+</head>
+<body data-theme="light" data-exp="false">
+
+    <div id="sidebar">
+        <div id="my-name" onclick="startRenaming()" style="font-weight:900; font-size:1.8em; margin-bottom:20px; cursor:pointer;">Guest</div>
+        <div class="section-title">ROOMS <span onclick="openModal('create-room')" style="cursor:pointer; color:var(--hl);">[+]</span></div>
+        <div id="room-list" class="scroll-list"></div>
+        <div class="section-title">PEERS (MESH)</div>
+        <div id="user-list" class="scroll-list"></div>
+        <div id="bottom-panel">
+            <form onsubmit="event.preventDefault(); runCode();" style="margin-top:10px; display:flex; gap:5px;">
+                <input type="search" id="code-in" placeholder="Command..." autocomplete="off" style="flex-grow:1; background:var(--input-bg); border:2px var(--border-style) var(--border); color:var(--text); padding:10px; font-size:14px;">
+                <button type="submit" style="background:var(--hl); color:#fff; border:none; padding:10px 15px; cursor:pointer; font-weight:800;">RUN</button>
+            </form>
+            <div id="cmd-feedback" style="font-size: 0.8em; height: 1.2em; color: var(--hl); margin-top: 5px; text-align: center; font-weight: bold; opacity:0;"></div>
+        </div>
+    </div>
+
+    <div id="main">
+        <div id="chat-header" style="padding: 15px 30px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center;"><span id="header-text" style="font-weight:900; font-size:1.3em;">#GENERAL</span><div id="mesh-status" style="font-size:0.7em; color:var(--text-dim);">MESH ACTIVE</div></div>
+        <div id="chat"></div>
+        <form id="controls-form" onsubmit="event.preventDefault(); send();" style="padding: 15px; background: var(--panel); border-top: 2px var(--border-style) var(--border); display: flex; gap: 10px;"><input type="search" id="message" placeholder="Message..." autocomplete="off"><button id="send-btn" type="submit">SEND</button></form>
+    </div>
+
+    <div id="modal-create-room" class="modal"><div class="modal-box"><h3>NEW ROOM</h3><input id="new-room-name" placeholder="Name"><button class="btn" onclick="createRoom()">CREATE</button><button class="btn" onclick="closeModals()">CANCEL</button></div></div>
+    <div id="modal-megahelp" class="modal"><div class="modal-box"><h3>M4-P2P HELP</h3><div style="font-size:0.9em; line-height:2em;"><b>stats</b>: Network status<br><b>exp</b>: Aesthetic UI<br><b>theme</b>: Switch colors<br><b>text</b>: Symbols Theme<br><b>rus/eng</b>: Language<br><b>cleaner</b>: Clear local screen</div><button class="btn" onclick="closeModals()">CLOSE</button></div></div>
+
+    <script>
+        // --- P2P ENGINE INIT ---
+        // Every user who opens the site connects to each other via these relays
+        const gun = Gun({
+            peers: [
+                'https://gun-manhattan.herokuapp.com/gun',
+                window.location.origin + '/gun' 
+            ]
+        });
+
+        let myName = localStorage.getItem('m4_name') || "anon#" + Math.floor(Math.random()*9999);
+        let currentTarget = "#GENERAL";
+        let currentLang = localStorage.getItem('m4_lang') || 'en';
+        let expMode = localStorage.getItem('m4_exp') === 'true';
+
+        const chatData = gun.get('m4messenger_mesh_v12').get(currentTarget);
+
+        // --- CORE UI ---
+        function applyTheme(t) { t==='light' ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', t); }
+        function setLanguage(l) { currentLang = l; localStorage.setItem('m4_lang', l); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); }
+        function openModal(id) { document.getElementById('modal-'+id).style.display = 'flex'; }
+        
+        function startRenaming() {
+            const el = document.getElementById('my-name');
+            const cur = el.innerText;
+            el.innerHTML = `<input id="rename-input" value="${cur}" onblur="finishRename()" onkeypress="if(event.key==='Enter') finishRename()">`;
+            document.getElementById('rename-input').focus();
+        }
+        function finishRename() {
+            const n = document.getElementById('rename-input').value.trim();
+            if(n) { myName = n; localStorage.setItem('m4_name', n); }
+            document.getElementById('my-name').innerText = myName;
+        }
+
+        // --- P2P MESSAGING ---
+        function send() {
+            const i = document.getElementById('message');
+            if(!i.value) return;
+            const msg = { from: myName, msg: i.value, time: Date.now() };
+            gun.get('m4messenger_mesh_v12').get(currentTarget).set(msg);
+            i.value = "";
+        }
+
+        // Listen for new messages in current channel
+        gun.get('m4messenger_mesh_v12').get(currentTarget).map().on((data, id) => {
+            if(!data) return;
+            drawMessage(data);
+        });
+
+        function drawMessage(d) {
+            if(document.getElementById(d.time)) return; // Prevent duplicates
+            const chat = document.getElementById('chat');
+            const div = document.createElement('div');
+            const isMe = d.from === myName;
+            div.id = d.time;
+            div.className = 'msg ' + (isMe ? 'msg-mine' : 'msg-other');
+            
+            let content = (!isMe) ? `<span style="font-size:0.7em;display:block;opacity:0.6;margin-bottom:4px;">${d.from}</span>` : "";
+            div.innerHTML = content + d.msg;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // --- COMMANDS ---
+        window.cmd = runCode;
+        function runCode(manual = null) {
+            const i = document.getElementById('code-in');
+            const code = (manual || i.value).trim().lower();
+            let res = "Executed";
+
+            if(code === "light" || code === "dark" || code === "text") { 
+                document.body.setAttribute('data-theme', code); 
+                localStorage.setItem('m4_theme', code);
+            }
+            else if(code === "exp") { 
+                expMode = !expMode; 
+                document.body.setAttribute('data-exp', expMode);
+                localStorage.setItem('m4_exp', expMode);
+            }
+            else if(code === "cleaner") { document.getElementById('chat').innerHTML = ""; }
+            else if(code === "megahelp") { openModal('megahelp'); }
+            else if(code === "stats") { alert("P2P Mode: Active\nNodes: Local + Global Relays\nUser: " + myName); }
+            
+            const fb = document.getElementById('cmd-feedback');
+            fb.innerText = res; fb.style.opacity = 1;
+            setTimeout(() => fb.style.opacity = 0, 3000);
+            i.value = "";
+        }
+
+        // Init UI
+        document.getElementById('my-name').innerText = myName;
+        applyTheme(localStorage.getItem('m4_theme') || 'light');
+        document.body.setAttribute('data-exp', expMode);
+
+    </script>
+</body>
+</html>
