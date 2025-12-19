@@ -56,7 +56,6 @@
         #net-status { width: 12px; height: 12px; border-radius: 50%; background: #ff9500; box-shadow: 0 0 5px #ff9500; transition: 0.3s; margin-left: 10px; cursor: pointer; }
         #net-status.connected { background: var(--hl) !important; box-shadow: 0 0 8px var(--hl) !important; }
         
-        /* Console Log in Network Modal */
         #net-console { background: #000; color: #0f0; font-family: monospace; padding: 10px; height: 150px; overflow-y: auto; font-size: 0.7em; margin-bottom: 10px; border-radius: 4px; border: 1px solid #333; }
 
         .section-title { color: var(--text-dim); font-size: 0.75em; margin: 15px 0 8px 0; font-weight: 800; text-transform: uppercase; }
@@ -141,9 +140,12 @@
         <div class="modal-box">
             <h3>CONNECTION LOG</h3>
             <div id="net-console"></div>
-            <div style="font-size:0.8em; margin-bottom:10px;">Add Relay (WebSocket URL):</div>
+            <div style="font-size:0.8em; margin-bottom:10px;">
+                <strong>Connect via IP:</strong> <code>192.168.1.5:8765</code><br>
+                <strong>Magic Link:</strong> <code>m4.com/?connect=192.168...</code>
+            </div>
             <div style="display:flex; gap:5px;">
-                <input id="new-peer-url" placeholder="wss://..." style="flex:1;">
+                <input id="new-peer-url" placeholder="wss://... or 1.2.3.4:8765" style="flex:1;">
                 <button class="btn" style="width:auto;" onclick="addPeer()">ADD</button>
             </div>
             <button class="btn" style="margin-top:15px;" onclick="closeModals()">CLOSE</button>
@@ -185,6 +187,38 @@
     </div>
 
     <script>
+        // --- HELPER: NORMALIZE URL ---
+        function normalizePeerUrl(url) {
+            url = url.trim();
+            if(!url) return '';
+            // If just numbers and dots (IP) or localhost, add http://
+            if(!url.startsWith('http') && !url.startsWith('ws')) {
+                url = 'http://' + url;
+            }
+            // Ensure /gun at end
+            if(!url.endsWith('/gun')) {
+                // remove trailing slash if exists then add /gun
+                url = url.replace(/\/$/, '') + '/gun';
+            }
+            return url;
+        }
+
+        // --- URL PARAMS HANDLER ---
+        const urlParams = new URLSearchParams(window.location.search);
+        // Support ?relay=... AND ?connect=...
+        const urlRelay = urlParams.get('relay') || urlParams.get('connect');
+        let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
+
+        if (urlRelay) {
+            const cleanUrl = normalizePeerUrl(urlRelay);
+            if (!savedPeers.includes(cleanUrl)) {
+                savedPeers.push(cleanUrl);
+                localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
+                alert("New Relay Added: " + cleanUrl);
+            }
+            window.history.replaceState({}, document.title, "/");
+        }
+
         // --- LOGGING ---
         function log(msg) {
             const c = document.getElementById('net-console');
@@ -196,17 +230,13 @@
         }
 
         // --- PEERS ---
-        // Reordered: working relay first
         const peers = [
             'https://relay.peer.ooo/gun',
             'https://gun-manhattan.herokuapp.com/gun',
             'https://gun-us.herokuapp.com/gun',
-            'https://gun-eu.herokuapp.com/gun',
-            'https://gun.glitch.me/gun',
             'https://plato.design/gun'
         ];
         
-        let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
         const allPeers = [...peers, ...savedPeers];
 
         log(`Initializing Gun with ${allPeers.length} candidates...`);
@@ -230,8 +260,6 @@
         
         gun.on('bye', (peer) => {
             log(`DISCONNECTED: ${peer.url || 'Peer'}`);
-            // Simple check: if we recently had a disconnect, wait a bit or assume offline
-            // But since 'hi' events fire frequently, we leave the logic simple for now
         });
 
         // --- LOCAL BROADCAST (TAB SYNC) ---
@@ -245,7 +273,8 @@
         };
 
         function addPeer() {
-            const url = document.getElementById('new-peer-url').value.trim();
+            let url = document.getElementById('new-peer-url').value;
+            url = normalizePeerUrl(url);
             if(url) {
                 savedPeers.push(url);
                 localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
@@ -280,8 +309,8 @@
         let currentTarget = "#GENERAL", currentLang = localStorage.getItem('m4_lang') || 'en';
 
         const trans = {
-            en: { send: "SEND", rooms: "ROOMS", users: "USERS", help: "soft: corners\nsnow: toggle\nclean: wipe cache\ntheme: picker\nnick @user Name\nrus/eng/ger/spa/fra: language\n\nThemes: light, dark, coffee, coffee-dark, etc." },
-            ru: { send: "ОТПРАВИТЬ", rooms: "КОМНАТЫ", users: "ЛЮДИ", help: "soft: углы\nsnow: снег\nclean: очистка кэша\ntheme: темы\nnick @user Имя\n\nТемы: light, dark, coffee..." }
+            en: { send: "SEND", rooms: "ROOMS", users: "USERS", help: "soft: corners\nsnow: toggle\nclean: wipe cache\ntheme: picker\nnick @user Name\nconnect [ip:port]\nrelay list", users_lbl: "USERS" },
+            ru: { send: "ОТПРАВИТЬ", rooms: "КОМНАТЫ", users: "ЛЮДИ", help: "soft: углы\nsnow: снег\nclean: очистка кэша\ntheme: темы\nnick @user Имя\nconnect [ip:port]", users_lbl: "ЛЮДИ" }
         };
 
         const themeColors = {
@@ -355,7 +384,7 @@
             if(!el) {
                 el = document.createElement('div'); el.id = 'peer-' + handle; el.className = 'list-item';
                 el.tabIndex = 0;
-                el.onclick = () => switchChannel(handle); // DMs reuse switchChannel to open room named after handle
+                el.onclick = () => switchChannel(handle);
                 el.onkeydown = (e) => { if(e.key === 'Enter') switchChannel(handle); };
                 list.appendChild(el);
             }
@@ -373,7 +402,7 @@
             const r = document.getElementById('new-room-name').value.trim().replace(/#/g,'');
             if(r) {
                 const d = document.createElement('div');
-                d.id = 'room-' + r.toUpperCase(); // Add ID for highlighting
+                d.id = 'room-' + r.toUpperCase();
                 d.className = 'list-item'; d.innerText = '#'+r.toUpperCase();
                 d.tabIndex = 0;
                 d.onclick = () => switchChannel('#'+r.toUpperCase());
@@ -404,7 +433,6 @@
             const specificEl = document.getElementById('room-' + t.replace('#',''));
             if(specificEl) specificEl.classList.add('active-chan');
             else {
-                // Fallback for default/pre-loaded rooms
                 const all = document.querySelectorAll('#room-list .list-item');
                 all.forEach(el => { if(el.innerText === t) el.classList.add('active-chan'); });
             }
@@ -424,6 +452,32 @@
                 updateFavicon(c); 
                 if(c === 'light') document.body.removeAttribute('data-theme');
             }
+            else if(c.startsWith('connect ')) {
+                // Direct IP connect via console
+                let url = c.split(' ')[1];
+                if(url) {
+                    url = normalizePeerUrl(url);
+                    savedPeers.push(url);
+                    localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
+                    gun.opt({ peers: [url] });
+                    log(`Connecting to: ${url}`);
+                }
+            }
+            else if(c.startsWith('relay add ')) {
+                let url = c.split(' ')[2];
+                if(url) {
+                    url = normalizePeerUrl(url);
+                    savedPeers.push(url);
+                    localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
+                    gun.opt({ peers: [url] });
+                    log(`Added via console: ${url}`);
+                }
+            }
+            else if(c === 'relay list') {
+                log('Current Peers:');
+                allPeers.forEach(p => log(p));
+                openModal('network');
+            }
             else if(c === 'soft') { const cur = localStorage.getItem('m4_soft')==='true'; applySoft(!cur?'true':'false'); localStorage.setItem('m4_soft', !cur?'true':'false'); }
             else if(c === 'snow') { const cur = localStorage.getItem('m4_snow')==='true'; applySnow(!cur?'true':'false'); localStorage.setItem('m4_snow', !cur?'true':'false'); }
             else if(c === 'clean') { localStorage.clear(); location.reload(); }
@@ -438,7 +492,7 @@
         function setLanguage(l) { 
             const t = trans[l] || trans.en; currentLang = l; localStorage.setItem('m4_lang', l); 
             document.getElementById('lbl-rooms').innerText = t.rooms;
-            document.getElementById('lbl-users').innerText = t.users;
+            document.getElementById('lbl-users').innerText = t.users_lbl;
             document.getElementById('send-btn').innerText = t.send;
         }
 
@@ -472,7 +526,7 @@
         roomList.innerHTML = ''; 
         ['GENERAL','TECH','RANDOM'].forEach(r => {
              const d = document.createElement('div');
-             d.id = 'room-' + r; // Add ID for easier selection
+             d.id = 'room-' + r; 
              d.className = 'list-item'; d.innerText = '#'+r; d.tabIndex = 0;
              if(r==='GENERAL') d.classList.add('active-chan');
              d.onclick = () => switchChannel('#'+r);
