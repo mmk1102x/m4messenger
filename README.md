@@ -2,8 +2,6 @@
 
 **M4messenger** is a serverless, decentralized, Peer-to-Peer (P2P) messaging application powered by **Gun.js**. Designed with a "Performance First" philosophy, it runs entirely in the browser without a backend database.
 
-> **Status:** Active | **Protocol:** v24 | **Design:** Square/Brutalist
-
 ## 🚀 Core Features
 
 - **Decentralized:** No central server. Data lives in the mesh (Gun.js).
