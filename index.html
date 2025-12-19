@@ -53,9 +53,9 @@
         #hamburger { display: none; cursor: pointer; font-size: 1.5em; margin-right: 15px; }
         
         /* Connection Status */
-        #net-status { width: 12px; height: 12px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 5px var(--warn); transition: 0.3s; margin-left: 10px; cursor: pointer; }
+        #net-status { width: 12px; height: 12px; border-radius: 50%; background: #ff9500; box-shadow: 0 0 5px #ff9500; transition: 0.3s; margin-left: 10px; cursor: pointer; }
         #net-status.connected { background: var(--hl); box-shadow: 0 0 8px var(--hl); }
-        #net-status.local { background: #ff9500; } /* Orange for local only/connecting */
+        /* Default is Orange (Local Mode), Red is gone because Local is always possible */
 
         .section-title { color: var(--text-dim); font-size: 0.75em; margin: 15px 0 8px 0; font-weight: 800; text-transform: uppercase; }
         .scroll-list { overflow-y: auto; flex: 1; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; }
@@ -125,7 +125,7 @@
                 <div id="hamburger" onclick="toggleSidebar()">☰</div>
                 <div id="header-text">#GENERAL</div>
             </div>
-            <div id="net-status" title="Network Status (Click to manage)" onclick="openModal('network')"></div>
+            <div id="net-status" title="Status: Orange=Local, Green=Mesh" onclick="openModal('network')"></div>
         </div>
         <div id="chat"></div>
         <form id="controls-form" onsubmit="event.preventDefault(); send();">
@@ -137,8 +137,12 @@
     <!-- MODALS -->
     <div id="modal-network" class="modal">
         <div class="modal-box">
-            <h3>MESH NETWORK</h3>
-            <div style="font-size:0.8em; margin-bottom:15px; opacity:0.7;">Red Dot = No public peers reachable.<br>Add a working Relay URL below.</div>
+            <h3>NETWORK</h3>
+            <div style="font-size:0.8em; margin-bottom:15px; opacity:0.7;">
+                <strong>Orange Dot:</strong> Local Mode (Tabs sync).<br>
+                <strong>Green Dot:</strong> Connected to Mesh.<br>
+                Try adding a custom Relay if all defaults fail.
+            </div>
             <div id="peer-list-display" style="max-height:150px; overflow-y:auto; margin-bottom:10px; border:1px solid var(--border); padding:5px; font-size:0.75em;"></div>
             <div style="display:flex; gap:5px;">
                 <input id="new-peer-url" placeholder="https://..." style="flex:1;">
@@ -183,21 +187,27 @@
     </div>
 
     <script>
-        // --- NETWORKING ---
-        const defaultPeers = [
+        // --- OFFLINE-FIRST NETWORKING ---
+        // Mega List of public relays to try brute-force connection
+        const megaList = [
             'https://gun-manhattan.herokuapp.com/gun',
+            'https://gundb-relay-ml.herokuapp.com/gun',
+            'https://gun-us.herokuapp.com/gun',
+            'https://gun-eu.herokuapp.com/gun',
+            'https://www.raygun.live/gun',
+            'https://gun-ams1.maddiex.wtf/gun',
             'https://gun.heron.ninja/gun',
             'https://plato.design/gun',
-            'https://peer.wall.org/gun',
-            'https://gun-us.herokuapp.com/gun'
+            'https://peer.wall.org/gun'
         ];
         
-        // Load custom peers from storage
         let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
-        const allPeers = [...defaultPeers, ...savedPeers];
+        const allPeers = [...megaList, ...savedPeers];
 
         const gun = Gun({
             peers: allPeers,
+            localStorage: true, // Crucial for offline
+            radisk: true,
             rtc: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
@@ -206,29 +216,39 @@
             }
         });
 
-        // Connection Monitor
+        // --- LOCAL SYNC (BroadcastChannel) ---
+        // This ensures tabs sync instantly even if no internet/relay
+        const bc = new BroadcastChannel('m4_sync_channel');
+        bc.onmessage = (ev) => {
+            if(ev.data.type === 'msg') {
+                if(ev.data.room === currentTarget) drawMessage(ev.data.data);
+            }
+        };
+
+        // --- CONNECTION MONITOR ---
         let connectedPeers = 0;
         const statusEl = document.getElementById('net-status');
         
         gun.on('hi', (peer) => {
             connectedPeers++;
-            statusEl.classList.add('connected');
+            statusEl.classList.add('connected'); // Turns Green
             statusEl.title = `Connected (${connectedPeers} peers)`;
             updatePeerDisplay();
         });
         
         gun.on('bye', (peer) => {
             connectedPeers = Math.max(0, connectedPeers - 1);
-            if(connectedPeers === 0) statusEl.classList.remove('connected');
-            statusEl.title = `Disconnected`;
+            if(connectedPeers === 0) {
+                statusEl.classList.remove('connected'); // Returns to Orange
+                statusEl.title = `Local Mode (Offline)`;
+            }
             updatePeerDisplay();
         });
 
         function updatePeerDisplay() {
             const d = document.getElementById('peer-list-display');
             if(d) {
-                // Showing configured peers (checking their actual status is hard in Gun API, assume list)
-                d.innerHTML = `<strong>Configured Relays:</strong><br>` + allPeers.map(p => `&bull; ${p.split('//')[1].split('/')[0]}`).join('<br>');
+                d.innerHTML = `<strong>Active Relays tried:</strong><br>` + allPeers.map(p => `&bull; ${p.split('//')[1].split('/')[0]}`).join('<br>');
             }
         }
 
@@ -237,14 +257,14 @@
             if(url && url.startsWith('http')) {
                 savedPeers.push(url);
                 localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
-                gun.opt({ peers: [url] }); // Hot-add
+                gun.opt({ peers: [url] });
                 document.getElementById('new-peer-url').value = '';
                 alert("Peer added! Check status dot.");
-                location.reload(); // Reload to force full reconnect
+                location.reload();
             }
         }
 
-        // --- GLOBALS & HOTKEYS ---
+        // --- GLOBALS ---
         window.cmd = (c) => runCode(c);
         
         document.addEventListener('keydown', (e) => {
@@ -262,7 +282,7 @@
             if(id === 'network') updatePeerDisplay();
         }
 
-        // --- IDENTITY & STATE ---
+        // --- STATE ---
         let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
         let myName = localStorage.getItem('m4_name') || "Guest";
         localStorage.setItem('m4_handle', myHandle);
@@ -306,11 +326,10 @@
             announcePresence();
         }
 
-        // --- CORE & PRESENCE ---
+        // --- PRESENCE ---
         function announcePresence() {
             gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()});
         }
-        
         announcePresence();
         setInterval(announcePresence, 10000);
 
@@ -318,8 +337,14 @@
             const i = document.getElementById('message'); if(!i.value) return;
             const lId = Date.now();
             const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
+            
+            // 1. Draw Locally
             drawMessage(d, true);
+            // 2. Broadcast to other tabs
+            bc.postMessage({type: 'msg', room: currentTarget, data: d});
+            // 3. Send to Mesh
             gun.get('m4_mesh_v24').get(currentTarget).set(d);
+            
             i.value = "";
         }
 
