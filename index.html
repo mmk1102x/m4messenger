@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
     <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%23007aff%22%2F%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2270%22%20fill%3D%22%23fff%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20x%3D%2215%22%3EM4%3C%2Ftext%3E%3C%2Fsvg%3E">
-    <!-- QR Code Library (Lightweight) -->
+    <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- Gun.js Engine -->
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
@@ -143,7 +144,6 @@
             <h3>NETWORK</h3>
             <div id="net-console"></div>
             
-            <!-- Connection Input -->
             <div style="font-size:0.8em; margin:10px 0;">
                 <strong>Connect via IP/URL:</strong>
             </div>
@@ -208,7 +208,7 @@
             url = url.trim();
             if(!url) return '';
             if(!url.startsWith('http') && !url.startsWith('ws')) {
-                url = 'http://' + url;
+                url = 'https://' + url; // Default to https for render/web
             }
             if(!url.endsWith('/gun')) {
                 url = url.replace(/\/$/, '') + '/gun';
@@ -218,7 +218,6 @@
 
         // --- URL PARAMS HANDLER ---
         const urlParams = new URLSearchParams(window.location.search);
-        // Supports #c=BASE64 and ?connect=URL
         const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
         const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
         
@@ -231,7 +230,6 @@
                 localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
                 alert("New Relay Added: " + cleanUrl);
             }
-            // Clean URL but keep protocol
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
@@ -246,7 +244,9 @@
         }
 
         // --- PEERS ---
+        // New Render backend at TOP PRIORITY
         const peers = [
+            'https://m4-backend.onrender.com/gun', 
             'https://relay.peer.ooo/gun',
             'https://gun-manhattan.herokuapp.com/gun',
             'https://gun-us.herokuapp.com/gun',
@@ -273,7 +273,6 @@
         }
 
         function copyHashLink() {
-            // Prefer custom peer if available, else first default
             const activeUrl = savedPeers.length > 0 ? savedPeers[savedPeers.length-1] : peers[0];
             const hash = btoa(activeUrl);
             const fullLink = window.location.origin + window.location.pathname + '#c=' + hash;
@@ -291,7 +290,6 @@
             statusEl.classList.add('connected');
             statusEl.title = `Mesh Connected: ${peer.url}`;
             log(`CONNECTED: ${peer.url || 'Peer'}`);
-            // Update QR to show this successful connection
             if(peer.url) updateQR(peer.url);
         });
         
@@ -337,7 +335,6 @@
         function openModal(id) { 
             closeModals(); 
             document.getElementById('modal-'+id).style.display = 'flex';
-            // Default QR if opening network
             if(id === 'network') {
                 const activeUrl = savedPeers.length > 0 ? savedPeers[savedPeers.length-1] : peers[0];
                 updateQR(activeUrl);
@@ -467,13 +464,20 @@
         function switchChannel(t) { 
             currentTarget = t; 
             document.getElementById('header-text').innerText = t; 
+            
+            // Remove highlighting from all items (Users + Rooms)
             document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active-chan'));
-            const specificEl = document.getElementById('room-' + t.replace('#',''));
-            if(specificEl) specificEl.classList.add('active-chan');
-            else {
-                const all = document.querySelectorAll('#room-list .list-item');
-                all.forEach(el => { if(el.innerText === t) el.classList.add('active-chan'); });
+            
+            // Highlight specific ID first (Room)
+            const roomEl = document.getElementById('room-' + t.replace('#',''));
+            if(roomEl) {
+                roomEl.classList.add('active-chan');
+            } else {
+                // If not found, try finding user handle
+                const userEl = document.getElementById('peer-' + t);
+                if(userEl) userEl.classList.add('active-chan');
             }
+
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
             syncRoom(t);
         }
