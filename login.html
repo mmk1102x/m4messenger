@@ -6,29 +6,30 @@
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <style>
-        body { background: #f2f2f7; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 350px; }
-        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 1.2em; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #007aff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        :root { --bg: #f2f2f7; --text: #000; --panel: #fff; --hl: #007aff; --border: #ddd; }
+        [data-theme="dark"] { --bg: #000; --text: #0f0; --panel: #111; --hl: #0f0; --border: #333; }
+        [data-theme="text"] { --bg: #000; --text: #fff; --panel: #000; --hl: #fff; --border: #fff; }
+        body { background: var(--bg); color: var(--text); font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { background: var(--panel); padding: 50px; border: 2px solid var(--border); text-align: center; width: 450px; border-radius: 20px; }
+        input { width: 100%; padding: 25px; margin: 15px 0; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.6em; box-sizing: border-box; border-radius: 12px; }
+        button { width: 100%; padding: 20px; background: var(--hl); color: white; border: none; font-weight: bold; font-size: 1.4em; cursor: pointer; border-radius: 12px; }
     </style>
 </head>
-<body>
+<body data-theme="light">
     <div class="box">
         <h2>LOGIN</h2>
         <input id="u" placeholder="Username">
         <input id="p" type="password" placeholder="Password">
         <button onclick="login()">ENTER</button>
-        <p><a href="/">Back</a></p>
+        <p><a href="index.html" style="color:var(--text)">Back</a></p>
     </div>
     <script>
-        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
-        const user = gun.user();
+        document.body.setAttribute('data-theme', localStorage.getItem('m4_theme') || 'light');
         function login() {
-            const u = document.getElementById('u').value;
-            const p = document.getElementById('p').value;
-            user.auth(u, p, (ack) => {
+            const u = document.getElementById('u').value, p = document.getElementById('p').value;
+            Gun(['https://gun-manhattan.herokuapp.com/gun']).user().auth(u, p, (ack) => {
                 if(ack.err) alert(ack.err);
-                else { localStorage.setItem('m4_name', u); window.location.href = "/"; }
+                else { localStorage.setItem('m4_name', u); window.location.href = "index.html"; }
             });
         }
     </script>

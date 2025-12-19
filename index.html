@@ -33,14 +33,12 @@
         #sidebar { width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); display: flex; flex-direction: column; padding: 20px; z-index: 1000; box-sizing: border-box; height: 100dvh; backdrop-filter: blur(var(--blur)); background-color: var(--glass); }
         #logo-container { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
         #logo-icon { width: 60px; height: 60px; background: var(--hl); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.8em; }
-        
         #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; width: 100%; }
         .section-title { color: var(--text-dim); font-size: 0.75em; margin: 20px 0 10px 0; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
-        .scroll-list { overflow-y: auto; max-height: 30vh; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; border-radius: var(--radius); }
+        .scroll-list { overflow-y: auto; max-height: 35vh; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; border-radius: var(--radius); }
         .list-item { padding: 12px; cursor: pointer; border-bottom: 1px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; transition: 0.2s; }
         .active-chan { background: var(--hl); color: #fff; border-left: 5px solid var(--hl-border); font-weight: 800; }
         
-        /* FIX: ENSURE ALL BUTTONS AND RUN BUTTON LISTEN TO RADIUS */
         .btn, input, #send-btn, #btn-run { border-radius: var(--radius) !important; transition: 0.2s; border: 2px var(--border-style) var(--border); font-family: inherit; }
         .btn { background: var(--panel); color: var(--text); padding: 10px; cursor: pointer; width: 100%; margin-bottom: 5px; font-weight: bold; text-decoration: none; display: block; text-align: center; }
         .btn-red { background: var(--btn-red-bg); border-color: var(--btn-red-border); color: var(--btn-red-text); }
@@ -49,7 +47,6 @@
         .msg { padding: 10px 14px; border-radius: 20px; max-width: 85%; line-height: 1.4em; word-wrap: break-word; transition: 0.2s; position: relative; font-size: 1em; border: 2px var(--border-style) var(--border); }
         .msg-mine { align-self: flex-end; background: var(--msg-mine); color: #fff; border-bottom-right-radius: 4px !important; }
         .msg-other { align-self: flex-start; background: var(--msg-other); border: 1px var(--border-style) var(--border); border-bottom-left-radius: 4px !important; }
-        
         #message { flex-grow: 1; background: var(--input-bg); color: var(--text); padding: 12px; font-size: 16px; outline: none; }
         #send-btn { background: var(--hl-border); color: #fff; padding: 0 20px; font-weight: bold; cursor: pointer; border: none !important; }
 
@@ -58,25 +55,19 @@
         .stats-table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: 0.85em; margin-top: 15px; }
         .stats-table td { padding: 8px; border: 1px var(--border-style) var(--border); }
         #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; display: none; }
-
         @media (max-width: 768px) { #mobile-header { display: flex; } #sidebar { position: fixed; top: 50px; left: 0; bottom: 0; transform: translateX(-100%); width: 280px; } #sidebar.open { transform: translateX(0); } #main { width: 100vw; height: calc(100dvh - 50px); } }
     </style>
 </head>
 <body data-theme="light" data-exp="false">
     <canvas id="snow-canvas"></canvas>
     <div id="mobile-header"><div onclick="toggleSidebar()" style="font-size: 1.5em; cursor: pointer;">☰</div><div style="font-weight:900;">M4messenger</div><div style="width:30px;"></div></div>
-    
     <div id="sidebar">
         <div id="logo-container"><div id="logo-icon">M4</div></div>
         <div id="my-name-display" onclick="startRenaming()" style="font-weight:900; font-size:1.1em; margin-bottom:20px; cursor:pointer; text-align: center;">Guest#00000</div>
-        
         <div class="section-title"><span id="lbl-rooms">ROOMS</span> <span onclick="openModal('create-room')" style="cursor:pointer; color:var(--hl);">[+]</span></div>
         <div id="room-list" class="scroll-list"></div>
-        
         <div class="section-title">PEERS (MESH)</div>
         <div id="user-list" class="scroll-list"></div>
-        
-        <!-- MOVED RUN TO BOTTOM OF SIDEBAR -->
         <div id="bottom-panel" style="margin-top: auto;">
             <div id="auth-btns">
                 <a href="login.html" class="btn" id="btn-login">Login</a>
@@ -90,18 +81,15 @@
             <div id="cmd-feedback" style="font-size: 0.8em; height: 1.2em; color: var(--hl); margin-top: 5px; text-align: center; font-weight: bold; opacity:0; transition: 0.3s;"></div>
         </div>
     </div>
-
     <div id="main">
         <div id="chat-header" style="padding: 15px 30px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center;"><span id="header-text" style="font-weight:900; font-size:1.3em;">#GENERAL</span><div style="font-size:0.7em; color:var(--text-dim);">P2P MESH</div></div>
         <div id="chat"></div>
         <form id="controls-form" onsubmit="event.preventDefault(); send();" style="padding: 15px; background: var(--panel); border-top: 2px var(--border-style) var(--border); display: flex; gap: 10px;"><input type="search" id="message" placeholder="Message..." autocomplete="off" name="msg_field_safe"><button id="send-btn" type="submit">SEND</button></form>
     </div>
-
-    <!-- MODALS -->
     <div id="modal-create-room" class="modal"><div class="modal-box"><h3>NEW ROOM</h3><input id="new-room-name" placeholder="Name"><button class="btn" onclick="createRoom()">CREATE</button><button class="btn btn-red" onclick="closeModals()">CANCEL</button></div></div>
     <div id="modal-stats" class="modal"><div class="modal-box" style="width:500px;"><h3>STATUS</h3><div id="stats-container"></div><button class="btn btn-red" onclick="closeModals()">CLOSE</button></div></div>
-    <div id="modal-help" class="modal"><div class="modal-box" style="width:450px;"><h3>COMMANDS</h3><div style="font-size:0.95em; line-height:2.1em;"><b>stats</b>: Status table<br><b>exp</b>: Toggle Aesthetic UI<br><b>soft / snow</b>: Effects<br><b>clean</b>: Wipe data<br><b>theme</b>: Themes picker<br><b>rus / eng</b>: Language<br><b>nick @user Name</b>: Alias</div><button class="btn btn-red" onclick="closeModals()">CLOSE</button></div></div>
-    <div id="modal-themes" class="modal"><div class="modal-box"><h3>THEMES</h3><div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;"><button class="btn" onclick="runCode('light');closeModals()">LIGHT</button><button class="btn" onclick="runCode('dark');closeModals()" style="background:#000; color:#0f0; border:none;">DARK</button><button class="btn" onclick="runCode('text');closeModals()" style="background:#000; color:#fff; border:1px solid #fff;">TEXT(|_)</button><button class="btn" onclick="runCode('emerald');closeModals()" style="background:#0a1a14; color:#2ecc71; border:none;">EMERALD</button><button class="btn" onclick="runCode('midnight');closeModals()" style="background:#000814; color:#5080ff; border:none;">MIDNIGHT</button><button class="btn" onclick="runCode('purple');closeModals()" style="background:#0f0a1e; color:#bf5af2; border:none;">PURPLE</button><button class="btn" onclick="runCode('crimson');closeModals()" style="background:#1a0505; color:#ff4d4d; border:none;">CRIMSON</button></div><button class="btn btn-red" onclick="closeModals()" style="margin-top:10px;">CLOSE</button></div></div>
+    <div id="modal-help" class="modal"><div class="modal-box" style="width:450px;"><h3>COMMANDS</h3><div style="font-size:0.95em; line-height:2.1em;"><b>stats</b>: Status table<br><b>exp</b>: Aesthetic UI<br><b>soft / snow</b>: Effects<br><b>clean</b>: Wipe data<br><b>theme</b>: Themes picker<br><b>rus / eng</b>: Language<br><b>nick @user Name</b>: Alias</div><button class="btn btn-red" onclick="closeModals()">CLOSE</button></div></div>
+    <div id="modal-themes" class="modal"><div class="modal-box"><h3>THEMES</h3><div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;"><button class="btn" onclick="runCode('light');closeModals()" style="background:#fff; color:#000; border:1px solid #000;">LIGHT</button><button class="btn" onclick="runCode('dark');closeModals()" style="background:#000; color:#0f0; border:none;">DARK</button><button class="btn" onclick="runCode('text');closeModals()" style="background:#000; color:#fff; border:1px solid #fff;">TEXT(|_)</button><button class="btn" onclick="runCode('emerald');closeModals()" style="background:#0a1a14; color:#2ecc71; border:none;">EMERALD</button><button class="btn" onclick="runCode('midnight');closeModals()" style="background:#000814; color:#5080ff; border:none;">MIDNIGHT</button><button class="btn" onclick="runCode('purple');closeModals()" style="background:#0f0a1e; color:#bf5af2; border:none;">PURPLE</button><button class="btn" onclick="runCode('crimson');closeModals()" style="background:#1a0505; color:#ff4d4d; border:none;">CRIMSON</button></div><button class="btn btn-red" onclick="closeModals()" style="margin-top:10px;">CLOSE</button></div></div>
 
     <script>
         const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
@@ -117,7 +105,6 @@
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); }
         function openModal(id) { closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; }
-        
         function startRenaming() { if(user.is) return; const el = document.getElementById('my-name-display'); if(el.querySelector('input')) return; el.innerHTML = `<input id="rename-input" value="${myPureName}" onblur="finishRename()" onkeypress="if(event.key==='Enter') finishRename()">`; document.getElementById('rename-input').focus(); }
         function finishRename() { const i = document.getElementById('rename-input'); if(i) { const n = i.value.trim(); if(n) { myPureName = n; myFullName = `${n}#${m4_id}`; localStorage.setItem('m4_name', n); } document.getElementById('my-name-display').innerText = myFullName; } }
         function logout() { user.leave(); localStorage.removeItem('m4_name'); location.reload(); }
@@ -135,7 +122,8 @@
 
         function runCode(manual = null) {
             const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
-            if(['light','dark','text','blue','purple','crimson','emerald','midnight'].includes(c)) { document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); }
+            const themes = ['light','dark','text','blue','purple','crimson','emerald','midnight','coffee','solarized','amber'];
+            if(themes.includes(c)) { document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); }
             else if(c === 'exp') { const cur = document.body.getAttribute('data-exp')==='true'; document.body.setAttribute('data-exp', !cur); localStorage.setItem('m4_exp', !cur); }
             else if(c === 'soft') { const cur = localStorage.getItem('m4_soft')==='true'; applySoft(!cur?'true':'false'); localStorage.setItem('m4_soft', !cur?'true':'false'); }
             else if(c === 'snow') { const cur = localStorage.getItem('m4_snow')==='true'; applySnow(!cur?'true':'false'); localStorage.setItem('m4_snow', !cur?'true':'false'); }
