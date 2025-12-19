@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
     <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%23007aff%22%2F%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2270%22%20fill%3D%22%23fff%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20x%3D%2215%22%3EM4%3C%2Ftext%3E%3C%2Fsvg%3E">
-    <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    <!-- Gun.js Engine -->
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
@@ -48,6 +46,9 @@
         #my-handle-display { font-size: 0.85em; opacity: 0.6; cursor: pointer; padding: 5px; }
         #my-name-display:hover, #my-handle-display:hover { background: var(--bg); outline: 1px solid var(--hl); }
 
+        #user-search { width: 100%; padding: 8px; margin-bottom: 10px; background: var(--input-bg); border: 2px var(--border-style) var(--border); color: var(--text); font-family: inherit; font-size: 0.8em; }
+        #user-search:focus { border-color: var(--hl); }
+
         #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; }
         #header { height: 60px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
         #header-left { display: flex; align-items: center; }
@@ -58,7 +59,7 @@
         
         #net-console { background: #000; color: #0f0; font-family: monospace; padding: 10px; height: 150px; overflow-y: auto; font-size: 0.7em; margin-bottom: 10px; border-radius: 4px; border: 1px solid #333; }
 
-        .section-title { color: var(--text-dim); font-size: 0.75em; margin: 15px 0 8px 0; font-weight: 800; text-transform: uppercase; }
+        .section-title { color: var(--text-dim); font-size: 0.75em; margin: 15px 0 8px 0; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .scroll-list { overflow-y: auto; flex: 1; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; }
         .list-item { padding: 12px; cursor: pointer; border-bottom: 1px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; transition: 0.2s; }
         .list-item:hover, .list-item:focus { background: var(--msg-other); }
@@ -107,10 +108,19 @@
             <div id="my-handle-display" tabindex="0" onclick="startRenaming('handle')" onkeydown="if(event.key==='Enter') startRenaming('handle')">@handle</div>
         </div>
 
-        <div class="section-title"><span id="lbl-rooms">ROOMS</span> <span onclick="openModal('create-room')" style="cursor:pointer; color:var(--hl); float:right;">[+]</span></div>
-        <div id="room-list" class="scroll-list"></div>
-        <div class="section-title" id="lbl-users">USERS</div>
-        <div id="user-list" class="scroll-list"></div>
+        <div class="lists" style="flex:1; overflow-y:auto; padding:10px;">
+            <div class="list-item active-chan" id="room-GENERAL" onclick="switchChannel('#GENERAL')" style="font-weight:900; margin-bottom:15px; border-bottom:2px var(--border-style) var(--hl);">
+                #GENERAL
+            </div>
+            
+            <input type="text" id="user-search" placeholder="Search users..." onkeyup="renderUsers()" autocomplete="off">
+
+            <div class="section-title">ONLINE</div>
+            <div id="user-list-online"></div>
+            
+            <div class="section-title" style="margin-top:20px;">OFFLINE</div>
+            <div id="user-list-offline"></div>
+        </div>
         
         <div id="bottom-panel" style="margin-top: auto;">
             <form onsubmit="event.preventDefault(); runCode();" style="display:flex; gap:5px;">
@@ -158,8 +168,6 @@
             <button class="btn" style="margin-top:15px;" onclick="closeModals()">CLOSE</button>
         </div>
     </div>
-
-    <div id="modal-create-room" class="modal"><div class="modal-box"><h3>NEW ROOM</h3><input id="new-room-name" placeholder="Name"><button class="btn" onclick="createRoom()" style="margin-top:10px;">CREATE</button><button class="btn" style="margin-top:5px;border:none;background:none;color:var(--text-dim);" onclick="closeModals()">CANCEL</button></div></div>
     
     <div id="modal-help" class="modal">
         <div class="modal-box">
@@ -178,64 +186,32 @@
     </div>
 
     <script>
-        // --- CONFIG & HELPERS ---
-        const themeColors = {
-            'light': '#007aff', 'dark': '#0f0',
-            'coffee': '#8d6e63', 'coffee-dark': '#a67c52',
-            'emerald': '#2ecc71', 'midnight': '#5080ff',
-            'amber': '#ffbf00', 'solarized': '#268bd2',
-            'blue': '#00e5ff', 'purple': '#bf5af2',
-            'crimson': '#ff4d4d'
-        };
-
+        // --- CONFIG ---
+        const themeColors = { 'light': '#007aff', 'dark': '#0f0', 'coffee': '#8d6e63', 'coffee-dark': '#a67c52', 'emerald': '#2ecc71', 'midnight': '#5080ff', 'amber': '#ffbf00', 'solarized': '#268bd2', 'blue': '#00e5ff', 'purple': '#bf5af2', 'crimson': '#ff4d4d' };
         const trans = {
-            en: { 
-                help: "COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\njoin [Room]: Join/Create room\nconnect [url]: Add relay\nrelay list: Show status\nstats: Network stats\nrus/eng: Language",
-                rooms: "ROOMS", users_lbl: "USERS", send: "SEND"
-            },
-            ru: { 
-                help: "КОМАНДЫ:\n\nsoft: Углы (вкл/выкл)\nsnow: Снег (вкл/выкл)\nclean: Сброс данных\ntheme: Темы\nname [Имя]: Сменить имя\njoin [Комната]: Войти/Создать\nconnect [url]: Добавить реле\nrelay list: Статус сети\nstats: Статистика\nrus/eng: Язык",
-                rooms: "КОМНАТЫ", users_lbl: "ЛЮДИ", send: "ОТПРАВИТЬ"
-            }
+            en: { help: "COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\nconnect [url]: Add relay\nrelay list: Show status\nstats: Network stats\nrus/eng: Language", send: "SEND" },
+            ru: { help: "КОМАНДЫ:\n\nsoft: Углы (вкл/выкл)\nsnow: Снег (вкл/выкл)\nclean: Сброс данных\ntheme: Темы\nname [Имя]: Сменить имя\nconnect [url]: Добавить реле\nrelay list: Статус сети\nstats: Статистика\nrus/eng: Язык", send: "ОТПРАВИТЬ" }
         };
 
+        // --- HELPERS ---
         function updateFavicon(theme) {
             const color = themeColors[theme] || '#007aff';
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${color}"/><text y=".9em" font-size="70" fill="#fff" font-family="monospace" font-weight="bold" x="15">M4</text></svg>`;
             document.getElementById('dynamic-favicon').href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
         }
-
         function normalizePeerUrl(url) {
-            url = url.trim();
-            if(!url) return '';
+            url = url.trim(); if(!url) return '';
             if(!url.startsWith('http') && !url.startsWith('ws')) url = 'https://' + url;
             if(!url.endsWith('/gun')) url = url.replace(/\/$/, '') + '/gun';
             return url;
         }
-
         function log(msg) {
             const c = document.getElementById('net-console');
             if(c) { c.innerHTML += `<div>> ${msg}</div>`; c.scrollTop = c.scrollHeight; }
             console.log(msg);
         }
-
-        function applySoft(v) { 
-            document.documentElement.style.setProperty('--radius', v ? '18px' : '0px'); 
-        }
-
-        let sInt = null; 
-        function applySnow(isActive) { 
-            const c = document.getElementById('snow-canvas'); 
-            if (isActive) { 
-                c.style.display = 'block'; 
-                if (!sInt) startSnow(); 
-            } else { 
-                c.style.display = 'none'; 
-                clearInterval(sInt); 
-                sInt = null; 
-            } 
-        }
-
+        function applySoft(v) { document.documentElement.style.setProperty('--radius', v ? '18px' : '0px'); }
+        let sInt = null; function applySnow(isActive) { const c = document.getElementById('snow-canvas'); if (isActive) { c.style.display = 'block'; if (!sInt) startSnow(); } else { c.style.display = 'none'; clearInterval(sInt); sInt = null; } }
         function startSnow() {
             const c = document.getElementById('snow-canvas'); const ctx = c.getContext('2d');
             let w = c.width = window.innerWidth, h = c.height = window.innerHeight, fs = [];
@@ -244,200 +220,162 @@
             function move() { for(let f of fs){ f.y += f.d; if(f.y>h){ f.x=Math.random()*w; f.y=-10; } } }
             sInt = setInterval(draw, 33);
         }
-
         function setLanguage(lang) {
-            const t = trans[lang] || trans.en;
-            localStorage.setItem('m4_lang', lang);
-            const lblRooms = document.getElementById('lbl-rooms');
+            const t = trans[lang] || trans.en; localStorage.setItem('m4_lang', lang);
             const lblUsers = document.getElementById('lbl-users');
             const btnSend = document.getElementById('send-btn');
-            if(lblRooms) lblRooms.innerText = t.rooms;
-            if(lblUsers) lblUsers.innerText = t.users_lbl;
+            if(lblUsers) lblUsers.innerText = t.users_lbl || "USERS";
             if(btnSend) btnSend.innerText = t.send;
         }
 
-        // --- INIT & PARAMS ---
+        // --- INIT ---
         const urlParams = new URLSearchParams(window.location.search);
         const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
         const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
         const urlCmd = urlParams.get('cmd');
-        
         let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
         if (urlRelay) {
             const cleanUrl = normalizePeerUrl(urlRelay);
-            if (!savedPeers.includes(cleanUrl)) {
-                savedPeers.push(cleanUrl);
-                localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
-                alert("New Relay Added: " + cleanUrl);
-            }
+            if (!savedPeers.includes(cleanUrl)) { savedPeers.push(cleanUrl); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); alert("New Relay Added: " + cleanUrl); }
         }
-
-        const peers = [
-            'https://m4-backend.onrender.com/gun',
-            'https://relay.peer.ooo/gun',
-            'https://plato.design/gun'
-        ];
+        const peers = ['https://m4-backend.onrender.com/gun', 'https://relay.peer.ooo/gun', 'https://plato.design/gun'];
         const allPeers = [...peers, ...savedPeers];
         log(`Init Gun with ${allPeers.length} peers...`);
-
         const gun = Gun({ peers: allPeers, localStorage: true, radisk: true });
-
-        if (urlRelay || urlCmd) {
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
+        if (urlRelay || urlCmd) window.history.replaceState({}, document.title, window.location.pathname);
 
         // --- STATE ---
         let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
         let myName = localStorage.getItem('m4_name') || "Guest";
         let currentLang = localStorage.getItem('m4_lang') || 'en';
         let currentTarget = "#GENERAL";
-        
         localStorage.setItem('m4_handle', myHandle);
 
-        // --- UI LOGIC ---
+        // --- NETWORK UI ---
         const statusEl = document.getElementById('net-status');
-        gun.on('hi', (peer) => {
-            statusEl.classList.add('connected');
-            statusEl.title = `Connected: ${peer.url}`;
-            log(`CONNECTED: ${peer.url || 'Peer'}`);
-            if(peer.url) updateQR(peer.url);
-        });
+        gun.on('hi', (peer) => { statusEl.classList.add('connected'); statusEl.title = `Connected: ${peer.url}`; log(`CONNECTED: ${peer.url || 'Peer'}`); if(peer.url) updateQR(peer.url); });
         gun.on('bye', (peer) => { log(`DISCONNECTED: ${peer.url}`); });
-
-        function updateQR(url) {
-            new QRious({ element: document.getElementById('qr-code'), value: window.location.origin + window.location.pathname + '#c=' + btoa(url), size: 150 });
-        }
+        function updateQR(url) { new QRious({ element: document.getElementById('qr-code'), value: window.location.origin + window.location.pathname + '#c=' + btoa(url), size: 150 }); }
         function copyHashLink() {
             const activeUrl = savedPeers.length > 0 ? savedPeers[savedPeers.length-1] : peers[0];
-            const fullLink = window.location.origin + window.location.pathname + '#c=' + btoa(activeUrl);
-            navigator.clipboard.writeText(fullLink).then(() => {
-                document.getElementById('share-feedback').innerText = "Link Copied!";
-                setTimeout(() => document.getElementById('share-feedback').innerText = "", 2000);
+            navigator.clipboard.writeText(window.location.origin + window.location.pathname + '#c=' + btoa(activeUrl)).then(() => {
+                document.getElementById('share-feedback').innerText = "Link Copied!"; setTimeout(() => document.getElementById('share-feedback').innerText = "", 2000);
             });
         }
         function addPeer() {
-            let url = document.getElementById('new-peer-url').value;
-            url = normalizePeerUrl(url);
-            if(url) {
-                savedPeers.push(url);
-                localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
-                gun.opt({ peers: [url] });
-                log(`Added: ${url}`);
-                updateQR(url);
-                document.getElementById('new-peer-url').value = '';
-            }
+            let url = normalizePeerUrl(document.getElementById('new-peer-url').value);
+            if(url) { savedPeers.push(url); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); gun.opt({ peers: [url] }); log(`Added: ${url}`); updateQR(url); document.getElementById('new-peer-url').value = ''; }
         }
 
-        const bc = new BroadcastChannel('m4_v24_sync');
-        bc.onmessage = (ev) => {
-            if(ev.data && ev.data.type === 'msg' && ev.data.room === currentTarget) {
-                if(!document.getElementById('msg-' + (ev.data.data.localId || ev.data.data.time))) drawMessage(ev.data.data);
+        // --- USER LIST & SORTING ---
+        const usersState = {}; 
+
+        gun.get('m4_users_v24').map().on((user, handle) => {
+            if(!user || !user.name) { 
+                delete usersState[handle]; renderUsers(); return; 
             }
-        };
+            if (Date.now() - user.lastSeen > 2592000000) {
+                gun.get('m4_users_v24').get(handle).put(null); // Purge
+                delete usersState[handle];
+            } else {
+                usersState[handle] = user;
+            }
+            renderUsers();
+        });
+
+        let renderTimeout;
+        function renderUsers() {
+            if(renderTimeout) clearTimeout(renderTimeout);
+            renderTimeout = setTimeout(() => {
+                const listOnline = document.getElementById('user-list-online');
+                const listOffline = document.getElementById('user-list-offline');
+                const query = document.getElementById('user-search').value.toLowerCase();
+                
+                listOnline.innerHTML = ''; 
+                listOffline.innerHTML = '';
+
+                // Convert to array for sorting
+                const sortedUsers = Object.keys(usersState).map(handle => ({
+                    handle: handle,
+                    ...usersState[handle],
+                    isOnline: (Date.now() - (usersState[handle].lastSeen || 0)) < 60000,
+                    isGuest: usersState[handle].name.toLowerCase().startsWith('guest')
+                }));
+
+                // Sort: Online First -> Offline Named -> Offline Guests
+                sortedUsers.sort((a, b) => {
+                    // 1. Online First
+                    if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+                    // 2. Named Users First (Guests last)
+                    if (a.isGuest !== b.isGuest) return a.isGuest ? 1 : -1;
+                    // 3. Alphabetical (Optional)
+                    return a.name.localeCompare(b.name);
+                });
+
+                sortedUsers.forEach(u => {
+                    const label = `${u.name} (@${u.handle})`;
+                    
+                    if (query && !label.toLowerCase().includes(query)) return;
+
+                    const div = document.createElement('div');
+                    div.id = 'peer-' + u.handle;
+                    div.className = 'list-item';
+                    div.tabIndex = 0;
+                    div.onclick = () => switchChannel(u.handle);
+                    div.onkeydown = (e) => { if(e.key === 'Enter') switchChannel(u.handle); };
+                    
+                    if (u.handle === currentTarget) div.classList.add('active-chan');
+
+                    let displayTxt = label;
+                    if(u.handle === myHandle) displayTxt += " (You)";
+
+                    div.innerHTML = `<span>${displayTxt}</span><span class="status-dot ${u.isOnline?'online':''}"></span>`;
+                    
+                    if(u.isOnline) {
+                        div.style.opacity = '1';
+                        listOnline.appendChild(div);
+                    } else {
+                        div.style.opacity = '0.5';
+                        listOffline.appendChild(div);
+                    }
+                });
+            }, 50);
+        }
+
+        // --- CHAT LOGIC ---
+        const bc = new BroadcastChannel('m4_v24_sync');
+        bc.onmessage = (ev) => { if(ev.data && ev.data.type==='msg' && ev.data.room===currentTarget && !document.getElementById('msg-'+(ev.data.data.localId||ev.data.data.time))) drawMessage(ev.data.data); };
 
         function send() {
             const i = document.getElementById('message'); if(!i.value) return;
-            const lId = Date.now();
-            const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
-            drawMessage(d, true); 
-            bc.postMessage({type:'msg', room: currentTarget, data: d}); 
-            gun.get('m4_mesh_v24').get(currentTarget).set(d); 
-            i.value = "";
+            const d = { from: myName, handle: myHandle, msg: i.value, time: Date.now(), channel: currentTarget, localId: Date.now() };
+            drawMessage(d, true); bc.postMessage({type:'msg', room: currentTarget, data: d}); gun.get('m4_mesh_v24').get(currentTarget).set(d); i.value = "";
         }
-
         function syncRoom(roomName) {
             document.getElementById('chat').innerHTML = ""; 
-            gun.get('m4_mesh_v24').get(roomName).map().on((d) => {
-                if(!d || d.channel !== roomName) return; 
-                if(document.getElementById('msg-' + (d.localId || d.time))) return;
-                drawMessage(d);
-            });
+            gun.get('m4_mesh_v24').get(roomName).map().on((d) => { if(d && d.channel===roomName && !document.getElementById('msg-'+(d.localId||d.time))) drawMessage(d); });
         }
-
         function drawMessage(d, isP=false) {
             if(d.channel !== currentTarget) return;
-            const chat = document.getElementById('chat');
             const div = document.createElement('div');
-            const isMe = d.handle === myHandle;
             div.id = 'msg-' + (d.localId || d.time);
-            div.className = 'msg ' + (isMe ? 'msg-mine' : 'msg-other');
-            let content = (!isMe) ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${d.from} (@${d.handle})</span>` : "";
-            div.innerHTML = content + d.msg.replace(new RegExp(`@${myHandle}\\b`, 'gi'), `<span class="mention">@${myHandle}</span>`);
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
+            div.className = `msg ${d.handle===myHandle ? 'msg-mine' : 'msg-other'}`;
+            div.innerHTML = (d.handle!==myHandle ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${d.from}</span>` : "") + d.msg.replace(new RegExp(`@${myHandle}\\b`,'gi'), `<span class="mention">@${myHandle}</span>`);
+            const chat = document.getElementById('chat'); chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
         }
-
         function switchChannel(t) { 
-            currentTarget = t; 
-            document.getElementById('header-text').innerText = t; 
-            document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active-chan'));
-            
-            const roomEl = document.getElementById('room-' + t.replace('#',''));
-            if(roomEl) roomEl.classList.add('active-chan');
-            else {
-                const userEl = document.getElementById('peer-' + t);
-                if(userEl) userEl.classList.add('active-chan');
-            }
-
+            currentTarget = t; document.getElementById('header-text').innerText = t; 
+            renderUsers(); // Update highlights
+            if(t === '#GENERAL') document.getElementById('room-GENERAL').classList.add('active-chan');
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
             syncRoom(t);
         }
 
+        // --- PRESENCE ---
         function announcePresence() { gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()}); }
         announcePresence(); setInterval(announcePresence, 10000);
 
-        gun.get('m4_users_v24').map().on((user, handle) => {
-            if(!user || !user.name) { 
-                const dead = document.getElementById('peer-' + handle);
-                if(dead) dead.remove();
-                return;
-            }
-            renderPeer(user, handle);
-        });
-
-        function renderPeer(user, handle) {
-            const list = document.getElementById('user-list');
-            let el = document.getElementById('peer-' + handle);
-            if(!el) {
-                el = document.createElement('div'); el.id = 'peer-' + handle; el.className = 'list-item';
-                el.tabIndex = 0;
-                el.onclick = () => switchChannel(handle);
-                el.onkeydown = (e) => { if(e.key === 'Enter') switchChannel(handle); };
-                list.appendChild(el);
-            }
-            const isOnline = (Date.now() - (user.lastSeen || 0)) < 60000;
-            let txt = `${user.name} (@${handle})`;
-            if(handle === myHandle) txt += " (You)";
-            el.innerHTML = `<span>${txt}</span><span class="status-dot ${isOnline?'online':''}"></span>`;
-            el.style.opacity = isOnline ? '1' : '0.6';
-        }
-
-        let customRooms = JSON.parse(localStorage.getItem('m4_rooms') || '["GENERAL","TECH","RANDOM"]');
-        function renderRooms() {
-            const list = document.getElementById('room-list');
-            list.innerHTML = "";
-            customRooms.forEach(r => {
-                const d = document.createElement('div');
-                d.id = 'room-' + r; 
-                d.className = 'list-item'; d.innerText = '#'+r; d.tabIndex = 0;
-                if(r === currentTarget.replace('#','')) d.classList.add('active-chan');
-                d.onclick = () => switchChannel('#'+r);
-                d.onkeydown = (e) => { if(e.key==='Enter') switchChannel('#'+r); };
-                list.appendChild(d);
-            });
-        }
-        function createRoom() {
-            const r = document.getElementById('new-room-name').value.trim().toUpperCase().replace(/#/g,'');
-            if(r && !customRooms.includes(r)) {
-                customRooms.push(r);
-                localStorage.setItem('m4_rooms', JSON.stringify(customRooms));
-                renderRooms();
-                switchChannel('#'+r);
-            }
-            closeModals();
-        }
-
-        // --- INPUT & CMD ---
+        // --- UI & HOTKEYS ---
         document.addEventListener('keydown', (e) => {
             if (e.altKey && e.key === 'c') { e.preventDefault(); document.getElementById('message').focus(); }
             if (e.altKey && e.key === 'm') { e.preventDefault(); document.getElementById('code-in').focus(); }
@@ -445,104 +383,51 @@
         });
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); document.getElementById('code-in').focus(); }
-        function openModal(id) { 
-            closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; 
-            if(id==='network') updateQR(savedPeers.length>0?savedPeers[savedPeers.length-1]:peers[0]);
-        }
+        function openModal(id) { closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; if(id==='network') updateQR(savedPeers.length>0?savedPeers[savedPeers.length-1]:peers[0]); }
+        
         function startRenaming(type) { 
             const el = document.getElementById(type === 'name' ? 'my-name-display' : 'my-handle-display');
             if(el.querySelector('input')) return;
-            const val = type === 'name' ? myName : myHandle;
-            el.innerHTML = `<input id="ren-in" value="${val}" style="width:80%; font-size:1em; padding:2px;" onblur="finishRename('${type}')" onkeypress="if(event.key==='Enter') finishRename('${type}')">`;
-            setTimeout(() => document.getElementById('ren-in').focus(), 50);
+            el.innerHTML = `<input id="ren-in" value="${type==='name'?myName:myHandle}" style="width:80%; font-size:1em; padding:2px;" onblur="finishRename('${type}')" onkeypress="if(event.key==='Enter') finishRename('${type}')">`;
+            setTimeout(()=>document.getElementById('ren-in').focus(), 50);
         }
         function finishRename(type) {
             const i = document.getElementById('ren-in'); if(!i) return;
             let n = i.value.trim().replace(/\s/g, ''); if(!n) n = (type==='name'?'Guest':'user');
-            
-            if(type === 'handle' && myHandle !== n) {
-                gun.get('m4_users_v24').get(myHandle).put(null); 
-                const oldEl = document.getElementById('peer-' + myHandle);
-                if(oldEl) oldEl.remove();
-                myHandle = n; localStorage.setItem('m4_handle', n); 
-            } else if(type === 'name') {
-                myName = n; localStorage.setItem('m4_name', n); 
-            }
-            document.getElementById('my-name-display').innerText = myName;
-            document.getElementById('my-handle-display').innerText = '@' + myHandle;
-            announcePresence();
+            if(type==='handle' && myHandle!==n) { gun.get('m4_users_v24').get(myHandle).put(null); myHandle=n; localStorage.setItem('m4_handle', n); } 
+            else if(type==='name') { myName=n; localStorage.setItem('m4_name', n); }
+            document.getElementById('my-name-display').innerText = myName; document.getElementById('my-handle-display').innerText = '@' + myHandle; announcePresence();
         }
 
+        // --- COMMANDS ---
         window.cmd = (c) => runCode(c); 
-
         function runCode(manual = null) {
             const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
             const themes = ['light','dark','blue','purple','crimson','emerald','midnight','coffee','coffee-dark','solarized','amber'];
-            if(themes.includes(c)) { 
-                document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); updateFavicon(c); 
-            }
-            else if(c.startsWith('connect ')) {
-                let url = c.split(' ')[1]; if(url) { savedPeers.push(normalizePeerUrl(url)); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); gun.opt({ peers: [normalizePeerUrl(url)] }); }
-            }
-            else if(c.startsWith('join ')) { 
-                let room = c.split(' ')[1].toUpperCase().replace('#','');
-                if(!customRooms.includes(room)) { customRooms.push(room); localStorage.setItem('m4_rooms', JSON.stringify(customRooms)); renderRooms(); }
-                switchChannel('#'+room);
-            }
-            else if(c.startsWith('name ')) { 
-                finishRename('name'); 
-                myName = c.split(' ').slice(1).join(' '); localStorage.setItem('m4_name', myName);
-                document.getElementById('my-name-display').innerText = myName; announcePresence();
-            }
+            if(themes.includes(c)) { document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); updateFavicon(c); }
+            else if(c.startsWith('connect ')) { let url = c.split(' ')[1]; if(url) { savedPeers.push(normalizePeerUrl(url)); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); gun.opt({ peers: [normalizePeerUrl(url)] }); } }
+            else if(c.startsWith('name ')) { finishRename('name'); myName = c.split(' ').slice(1).join(' '); localStorage.setItem('m4_name', myName); document.getElementById('my-name-display').innerText = myName; announcePresence(); }
             else if(c === 'relay list' || c === 'stats') openModal('network');
             else if(c === 'clean') { localStorage.clear(); location.reload(); }
-            else if(c === 'help') { 
-                document.getElementById('help-list').innerText = (trans[currentLang] || trans.en).help; 
-                openModal('help'); 
-            }
-            else if(c === 'rus' || c === 'eng') { 
-                currentLang = c === 'rus' ? 'ru' : 'en'; 
-                setLanguage(currentLang); 
-            }
-            else if(c === 'soft') { 
-                const cur = localStorage.getItem('m4_soft') === 'true'; 
-                const next = !cur; 
-                localStorage.setItem('m4_soft', next); 
-                applySoft(next); 
-            }
-            else if(c === 'snow') { 
-                const cur = localStorage.getItem('m4_snow') === 'true'; 
-                const next = !cur; 
-                localStorage.setItem('m4_snow', next); 
-                applySnow(next); 
-            }
+            else if(c === 'help') { document.getElementById('help-list').innerText = (trans[currentLang] || trans.en).help; openModal('help'); }
+            else if(c === 'rus' || c === 'eng') { currentLang = c === 'rus' ? 'ru' : 'en'; setLanguage(currentLang); }
+            else if(c === 'soft') { const n = !(localStorage.getItem('m4_soft')==='true'); localStorage.setItem('m4_soft', n); applySoft(n); }
+            else if(c === 'snow') { const n = !(localStorage.getItem('m4_snow')==='true'); localStorage.setItem('m4_snow', n); applySnow(n); }
             else if(c === 'theme') {
-                const g = document.getElementById('theme-grid'); g.innerHTML='';
-                themes.forEach(t => { 
-                    const b = document.createElement('button'); b.className='btn'; b.innerText=t.toUpperCase(); 
-                    b.onclick=()=>runCode(t); g.appendChild(b); 
-                });
-                openModal('themes');
+                const g = document.getElementById('theme-grid'); g.innerHTML=''; themes.forEach(t => { const b = document.createElement('button'); b.className='btn'; b.innerText=t.toUpperCase(); b.onclick=()=>runCode(t); g.appendChild(b); }); openModal('themes');
             }
-            if(i) i.value = "";
-            const fb = document.getElementById('cmd-feedback');
-            if(fb) { fb.innerText = "OK"; setTimeout(()=>fb.innerText="", 2000); }
+            if(i) i.value = ""; const fb = document.getElementById('cmd-feedback'); if(fb) { fb.innerText = "OK"; setTimeout(()=>fb.innerText="", 2000); }
         }
 
         // --- BOOT ---
         const savedTheme = localStorage.getItem('m4_theme') || 'light';
-        document.body.setAttribute('data-theme', savedTheme);
-        updateFavicon(savedTheme); 
+        document.body.setAttribute('data-theme', savedTheme); updateFavicon(savedTheme); 
         document.getElementById('my-name-display').innerText = myName;
         document.getElementById('my-handle-display').innerText = '@' + myHandle;
-        
         applySoft(localStorage.getItem('m4_soft') === 'true');
         applySnow(localStorage.getItem('m4_snow') === 'true');
         setLanguage(localStorage.getItem('m4_lang') || 'en');
-        
-        renderRooms();
-        switchChannel('#GENERAL'); // FORCE CORRECT BOOT CHANNEL
-
+        switchChannel('#GENERAL');
         if(urlCmd) setTimeout(() => runCode(urlCmd), 1000);
     </script>
 </body>
