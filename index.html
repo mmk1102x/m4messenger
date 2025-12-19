@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
-    <!-- Dynamic Favicon Link -->
+    <!-- Dynamic Favicon -->
     <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%23007aff%22%2F%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2270%22%20fill%3D%22%23fff%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20x%3D%2215%22%3EM4%3C%2Ftext%3E%3C%2Fsvg%3E">
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
@@ -19,13 +19,8 @@
 
         /* --- THEMES --- */
         [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-border: #0f0; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; }
-        
-        /* Coffee (Light) */
         [data-theme="coffee"] { --bg: #fdf6e3; --panel: #eee8d5; --border: #d3af86; --text: #5d4037; --text-dim: #a1887f; --hl: #8d6e63; --hl-border: #8d6e63; --warn: #c62828; --input-bg: #fdf6e3; --msg-mine: #8d6e63; --msg-other: #efebe9; --mention: #bf360c; }
-        
-        /* Coffee (Dark) */
         [data-theme="coffee-dark"] { --bg: #2b2118; --panel: #1f1610; --border: #3e2f24; --text: #dcc8b8; --text-dim: #8d6e63; --hl: #a67c52; --hl-border: #a67c52; --warn: #c62828; --input-bg: #1f1610; --msg-mine: #543d2e; --msg-other: #3e2f24; --mention: #ffccbc; }
-
         [data-theme="emerald"] { --bg: #06100c; --panel: #0a1a14; --border: #143a2b; --text: #2ecc71; --text-dim: #1d6e41; --hl: #2ecc71; --hl-border: #2ecc71; --warn: #ff4d4d; --input-bg: #06100c; --msg-mine: #1d6e41; --msg-other: #122b21; --mention: #fff; }
         [data-theme="midnight"] { --bg: #00040a; --panel: #000814; --border: #002244; --text: #5080ff; --text-dim: #004488; --hl: #5080ff; --hl-border: #5080ff; --warn: #ff453a; --input-bg: #00040a; --msg-mine: #004488; --msg-other: #001122; --mention: #fff; }
         [data-theme="amber"] { --bg: #0d0b00; --panel: #141100; --border: #443300; --text: #ffbf00; --text-dim: #886600; --hl: #ffbf00; --hl-border: #ffbf00; --warn: #ff4d4d; --input-bg: #0d0b00; --msg-mine: #443300; --msg-other: #1a1600; --mention: #fff; }
@@ -34,11 +29,9 @@
         [data-theme="purple"] { --bg: #0f0a1e; --panel: #1a1233; --border: #2d1e5e; --text: #bf5af2; --text-dim: #5e2d91; --hl: #bf5af2; --hl-border: #2d1e5e; --warn: #ff375f; --input-bg: #0f0a1e; --msg-mine: #5e2d91; --msg-other: #1c1c1e; --mention: #00ffff; }
         [data-theme="crimson"] { --bg: #1a0505; --panel: #280a0a; --border: #441111; --text: #ff4d4d; --text-dim: #882222; --hl: #ff4d4d; --hl-border: #441111; --warn: #ffcc00; --input-bg: #0d0101; --msg-mine: #661111; --msg-other: #110303; --mention: #ffffff; }
 
-        /* --- GLOBAL RESET & A11Y --- */
+        /* --- GLOBAL RESET --- */
         * { box-sizing: border-box; outline: none; border-radius: var(--radius); }
         body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
-        
-        /* Keyboard Focus Indicators */
         *:focus-visible { outline: 2px solid var(--hl); outline-offset: -2px; z-index: 10; }
 
         /* --- LAYOUT --- */
@@ -48,7 +41,6 @@
         }
 
         #logo-container { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 25px; }
-        /* Strictly force the background to use the --hl variable */
         #logo-icon { width: 45px; height: 45px; background: var(--hl) !important; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5em; flex-shrink: 0; transition: background 0.3s; }
         #logo-text { font-weight: 900; font-size: 1.3em; letter-spacing: -1px; }
         
@@ -66,6 +58,10 @@
         .list-item { padding: 12px; cursor: pointer; border-bottom: 1px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; transition: 0.2s; }
         .list-item:hover, .list-item:focus { background: var(--msg-other); }
         .active-chan { background: var(--hl) !important; color: #fff !important; font-weight: 800; }
+        
+        /* Status Dot */
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; border: 1px solid var(--text-dim); margin-left: 8px; }
+        .online { background: var(--hl); border-color: var(--hl); }
         
         .btn, input, #send-btn, #btn-run { border-radius: var(--radius) !important; transition: 0.2s; border: 2px var(--border-style) var(--border); font-family: inherit; }
         .btn { background: var(--panel); color: var(--text); padding: 10px; cursor: pointer; width: 100%; font-weight: bold; }
@@ -109,6 +105,7 @@
         <div class="section-title"><span id="lbl-rooms">ROOMS</span> <span onclick="openModal('create-room')" style="cursor:pointer; color:var(--hl); float:right;">[+]</span></div>
         <div id="room-list" class="scroll-list"></div>
         <div class="section-title" id="lbl-users">USERS</div>
+        <!-- Removed "Scanning..." text. Just show list. -->
         <div id="user-list" class="scroll-list"></div>
         
         <div id="bottom-panel" style="margin-top: auto;">
@@ -196,7 +193,6 @@
             ru: { send: "ОТПРАВИТЬ", rooms: "КОМНАТЫ", users: "ЛЮДИ", help: "soft: углы\nsnow: снег\nclean: очистка кэша\ntheme: темы\nnick @user Имя\n\nТемы: light, dark, coffee..." }
         };
 
-        // --- FAVICON LOGIC (Fixed Encoding) ---
         const themeColors = {
             'light': '#007aff', 'dark': '#0f0',
             'coffee': '#8d6e63', 'coffee-dark': '#a67c52',
@@ -208,12 +204,10 @@
 
         function updateFavicon(theme) {
             const color = themeColors[theme] || '#007aff';
-            // Explicitly encode the SVG to safe URL characters
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${color}"/><text y=".9em" font-size="70" fill="#fff" font-family="monospace" font-weight="bold" x="15">M4</text></svg>`;
             document.getElementById('dynamic-favicon').href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
         }
 
-        // --- RENAME LOGIC ---
         function startRenaming(type) { 
             const el = document.getElementById(type === 'name' ? 'my-name-display' : 'my-handle-display');
             if(el.querySelector('input')) return;
@@ -228,13 +222,16 @@
             else { myHandle = n; localStorage.setItem('m4_handle', n); }
             document.getElementById('my-name-display').innerText = myName;
             document.getElementById('my-handle-display').innerText = '@' + myHandle;
-            gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()});
+            announcePresence();
         }
 
-        // --- CORE ---
-        setInterval(() => {
+        // --- CORE & PRESENCE ---
+        function announcePresence() {
             gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()});
-        }, 10000);
+        }
+        
+        announcePresence();
+        setInterval(announcePresence, 10000);
 
         function send() {
             const i = document.getElementById('message'); if(!i.value) return;
@@ -250,24 +247,34 @@
             drawMessage(d);
         });
 
+        // --- PEER DIRECTORY (Global) ---
         gun.get('m4_users_v24').map().on((user, handle) => {
-            if(!user || handle === myHandle) return;
-            if(Date.now() - user.lastSeen > 30000) return;
-            renderPeer(user.name, handle);
+            if(!user || !user.name) return;
+            // No time filter = Show everyone who ever joined
+            renderPeer(user, handle);
         });
 
-        // --- RENDERERS ---
-        function renderPeer(name, handle) {
+        function renderPeer(user, handle) {
             const list = document.getElementById('user-list');
             let el = document.getElementById('peer-' + handle);
             if(!el) {
                 el = document.createElement('div'); el.id = 'peer-' + handle; el.className = 'list-item';
-                el.tabIndex = 0; // A11Y
+                el.tabIndex = 0;
                 el.onclick = () => switchChannel(handle);
                 el.onkeydown = (e) => { if(e.key === 'Enter') switchChannel(handle); };
                 list.appendChild(el);
             }
-            el.innerText = `${name} (@${handle})`;
+            
+            const isOnline = (Date.now() - (user.lastSeen || 0)) < 60000;
+            const statusClass = isOnline ? 'status-dot online' : 'status-dot';
+            
+            // Text Content
+            let txt = `${user.name} (@${handle})`;
+            if(handle === myHandle) txt += " (You)";
+            
+            el.innerHTML = `<span>${txt}</span><span class="${statusClass}"></span>`;
+            if(!isOnline) el.style.opacity = '0.6';
+            else el.style.opacity = '1';
         }
 
         function createRoom() {
@@ -354,7 +361,6 @@
         applySnow(localStorage.getItem('m4_snow'));
         setLanguage(localStorage.getItem('m4_lang') || 'en');
         
-        // Init default room
         const roomList = document.getElementById('room-list');
         roomList.innerHTML = ''; 
         ['GENERAL','TECH','RANDOM'].forEach(r => {
