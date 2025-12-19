@@ -83,6 +83,8 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.7); z-index: 99999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-box { background: var(--bg); border: 4px var(--border-style) var(--hl-border); padding: 30px; width: 450px; max-width: 90%; color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
 
+        #snow-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999; display: none; }
+
         @media (max-width: 768px) {
             #sidebar { position: fixed; transform: translateX(-100%); width: 280px; }
             #sidebar.open { transform: translateX(0); }
@@ -92,6 +94,8 @@
 </head>
 <body data-theme="light">
     
+    <canvas id="snow-canvas"></canvas>
+
     <div id="sidebar">
         <div id="logo-container">
             <div id="logo-icon">M4</div>
@@ -174,7 +178,7 @@
     </div>
 
     <script>
-        // --- CONFIG & HELPERS ---
+        // --- GLOBAL CONFIG ---
         const themeColors = {
             'light': '#007aff', 'dark': '#0f0',
             'coffee': '#8d6e63', 'coffee-dark': '#a67c52',
@@ -184,6 +188,12 @@
             'crimson': '#ff4d4d'
         };
 
+        const trans = {
+            en: { help: "COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\njoin [Room]: Join/Create room\nconnect [url]: Add relay\nrelay list: Show status\nstats: Network stats\nrus/eng: Language" },
+            ru: { help: "КОМАНДЫ:\n\nsoft: Углы (вкл/выкл)\nsnow: Снег (вкл/выкл)\nclean: Сброс данных\ntheme: Темы\nname [Имя]: Сменить имя\njoin [Комната]: Войти/Создать\nconnect [url]: Добавить реле\nrelay list: Статус сети\nstats: Статистика\nrus/eng: Язык" }
+        };
+
+        // --- CORE FUNCTIONS ---
         function updateFavicon(theme) {
             const color = themeColors[theme] || '#007aff';
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${color}"/><text y=".9em" font-size="70" fill="#fff" font-family="monospace" font-weight="bold" x="15">M4</text></svg>`;
@@ -204,11 +214,39 @@
             console.log(msg);
         }
 
-        // --- INIT & NETWORK ---
+        function applySoft(v) { 
+            document.documentElement.style.setProperty('--radius', v ? '18px' : '0px'); 
+        }
+
+        let sInt = null; 
+        function applySnow(isActive) { 
+            const c = document.getElementById('snow-canvas'); 
+            if (isActive) { 
+                c.style.display = 'block'; 
+                if (!sInt) startSnow(); 
+            } else { 
+                c.style.display = 'none'; 
+                clearInterval(sInt); 
+                sInt = null; 
+            } 
+        }
+
+        function startSnow() {
+            const c = document.getElementById('snow-canvas'); const ctx = c.getContext('2d');
+            let w = c.width = window.innerWidth, h = c.height = window.innerHeight, fs = [];
+            for(let i=0; i<80; i++) fs.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*3+1, d: Math.random()*0.5+0.5});
+            function draw() { ctx.clearRect(0,0,w,h); ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.beginPath(); for(let f of fs){ ctx.moveTo(f.x,f.y); ctx.arc(f.x,f.y,f.r, 0, Math.PI*2,true); } ctx.fill(); move(); }
+            function move() { for(let f of fs){ f.y += f.d; if(f.y>h){ f.x=Math.random()*w; f.y=-10; } } }
+            sInt = setInterval(draw, 33);
+        }
+
+        // --- INIT & PARAMS ---
         const urlParams = new URLSearchParams(window.location.search);
         const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
         const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
+        const urlCmd = urlParams.get('cmd');
         
+        // 1. Peer Setup
         let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
         if (urlRelay) {
             const cleanUrl = normalizePeerUrl(urlRelay);
@@ -217,10 +255,8 @@
                 localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
                 alert("New Relay Added: " + cleanUrl);
             }
-            window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        // Removed dead Heroku relays
         const peers = [
             'https://m4-backend.onrender.com/gun',
             'https://relay.peer.ooo/gun',
@@ -231,6 +267,20 @@
 
         const gun = Gun({ peers: allPeers, localStorage: true, radisk: true });
 
+        // 2. Clear URL if params existed
+        if (urlRelay || urlCmd) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // --- STATE ---
+        let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
+        let myName = localStorage.getItem('m4_name') || "Guest";
+        let currentLang = localStorage.getItem('m4_lang') || 'en';
+        let currentTarget = "#GENERAL";
+        
+        localStorage.setItem('m4_handle', myHandle);
+
+        // --- UI LOGIC ---
         const statusEl = document.getElementById('net-status');
         gun.on('hi', (peer) => {
             statusEl.classList.add('connected');
@@ -264,13 +314,6 @@
             }
         }
 
-        // --- STATE & USER LOGIC ---
-        let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
-        let myName = localStorage.getItem('m4_name') || "Guest";
-        localStorage.setItem('m4_handle', myHandle);
-        let currentTarget = "#GENERAL";
-        
-        // Tab Sync
         const bc = new BroadcastChannel('m4_v24_sync');
         bc.onmessage = (ev) => {
             if(ev.data && ev.data.type === 'msg' && ev.data.room === currentTarget) {
@@ -330,7 +373,7 @@
         announcePresence(); setInterval(announcePresence, 10000);
 
         gun.get('m4_users_v24').map().on((user, handle) => {
-            if(!user || !user.name) { // Garbage collection
+            if(!user || !user.name) { 
                 const dead = document.getElementById('peer-' + handle);
                 if(dead) dead.remove();
                 return;
@@ -355,7 +398,6 @@
             el.style.opacity = isOnline ? '1' : '0.6';
         }
 
-        // --- ROOMS ---
         let customRooms = JSON.parse(localStorage.getItem('m4_rooms') || '["GENERAL","TECH","RANDOM"]');
         function renderRooms() {
             const list = document.getElementById('room-list');
@@ -381,7 +423,7 @@
             closeModals();
         }
 
-        // --- UI & HOTKEYS ---
+        // --- INPUT & CMD ---
         document.addEventListener('keydown', (e) => {
             if (e.altKey && e.key === 'c') { e.preventDefault(); document.getElementById('message').focus(); }
             if (e.altKey && e.key === 'm') { e.preventDefault(); document.getElementById('code-in').focus(); }
@@ -405,31 +447,19 @@
             let n = i.value.trim().replace(/\s/g, ''); if(!n) n = (type==='name'?'Guest':'user');
             
             if(type === 'handle' && myHandle !== n) {
-                gun.get('m4_users_v24').get(myHandle).put(null); // Del Old
+                gun.get('m4_users_v24').get(myHandle).put(null); 
                 const oldEl = document.getElementById('peer-' + myHandle);
                 if(oldEl) oldEl.remove();
                 myHandle = n; localStorage.setItem('m4_handle', n); 
             } else if(type === 'name') {
                 myName = n; localStorage.setItem('m4_name', n); 
             }
-            
             document.getElementById('my-name-display').innerText = myName;
             document.getElementById('my-handle-display').innerText = '@' + myHandle;
             announcePresence();
         }
 
-        // --- COMMANDS ---
         window.cmd = (c) => runCode(c); 
-
-        // Translations for HELP
-        const trans = {
-            en: {
-                help: `COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\njoin [Room]: Join/Create room\nconnect [url]: Add relay\nrelay list: Show status\nstats: Network stats\nrus/eng: Language`
-            },
-            ru: {
-                help: `КОМАНДЫ:\n\nsoft: Углы (вкл/выкл)\nsnow: Снег (вкл/выкл)\nclean: Сброс данных\ntheme: Темы\nname [Имя]: Сменить имя\njoin [Комната]: Войти/Создать\nconnect [url]: Добавить реле\nrelay list: Статус сети\nstats: Статистика\nrus/eng: Язык`
-            }
-        };
 
         function runCode(manual = null) {
             const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
@@ -457,8 +487,18 @@
                 openModal('help'); 
             }
             else if(c === 'rus' || c === 'eng') { currentLang = c === 'rus' ? 'ru' : 'en'; localStorage.setItem('m4_lang', currentLang); }
-            else if(c === 'soft') { const cur = localStorage.getItem('m4_soft')==='true'; applySoft(!cur?'true':'false'); localStorage.setItem('m4_soft', !cur?'true':'false'); }
-            else if(c === 'snow') { const cur = localStorage.getItem('m4_snow')==='true'; applySnow(!cur?'true':'false'); localStorage.setItem('m4_snow', !cur?'true':'false'); }
+            else if(c === 'soft') { 
+                const cur = localStorage.getItem('m4_soft') === 'true'; 
+                const next = !cur; 
+                localStorage.setItem('m4_soft', next); 
+                applySoft(next); 
+            }
+            else if(c === 'snow') { 
+                const cur = localStorage.getItem('m4_snow') === 'true'; 
+                const next = !cur; 
+                localStorage.setItem('m4_snow', next); 
+                applySnow(next); 
+            }
             else if(c === 'theme') {
                 const g = document.getElementById('theme-grid'); g.innerHTML='';
                 themes.forEach(t => { 
@@ -472,22 +512,6 @@
             if(fb) { fb.innerText = "OK"; setTimeout(()=>fb.innerText="", 2000); }
         }
 
-        function applySoft(v) { document.documentElement.style.setProperty('--radius', v === 'true' ? '18px' : '0px'); }
-        let sInt = null; 
-        function applySnow(v) { 
-            const c = document.getElementById('snow-canvas'); 
-            if (v === 'true') { c.style.display = 'block'; if (!sInt) startSnow(); } 
-            else { c.style.display = 'none'; clearInterval(sInt); sInt = null; } 
-        }
-        function startSnow() {
-            const c = document.getElementById('snow-canvas'); const ctx = c.getContext('2d');
-            let w = c.width = window.innerWidth, h = c.height = window.innerHeight, fs = [];
-            for(let i=0; i<80; i++) fs.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*3+1, d: Math.random()*0.5+0.5});
-            function draw() { ctx.clearRect(0,0,w,h); ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.beginPath(); for(let f of fs){ ctx.moveTo(f.x,f.y); ctx.arc(f.x,f.y,f.r, 0, Math.PI*2,true); } ctx.fill(); move(); }
-            function move() { for(let f of fs){ f.y += f.d; if(f.y>h){ f.x=Math.random()*w; f.y=-10; } } }
-            sInt = setInterval(draw, 33);
-        }
-
         // --- BOOT ---
         const savedTheme = localStorage.getItem('m4_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
@@ -495,13 +519,13 @@
         document.getElementById('my-name-display').innerText = myName;
         document.getElementById('my-handle-display').innerText = '@' + myHandle;
         
-        applySoft(localStorage.getItem('m4_soft')); 
-        applySnow(localStorage.getItem('m4_snow'));
+        applySoft(localStorage.getItem('m4_soft') === 'true');
+        applySnow(localStorage.getItem('m4_snow') === 'true');
         
         renderRooms();
         syncRoom('GENERAL');
 
-        if(urlCmd) setTimeout(() => runCode(urlCmd), 500); 
+        if(urlCmd) setTimeout(() => runCode(urlCmd), 1000);
     </script>
 </body>
 </html>
