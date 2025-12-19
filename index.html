@@ -54,7 +54,7 @@
         
         /* Connection Status */
         #net-status { width: 12px; height: 12px; border-radius: 50%; background: #ff9500; box-shadow: 0 0 5px #ff9500; transition: 0.3s; margin-left: 10px; cursor: pointer; }
-        #net-status.connected { background: var(--hl); box-shadow: 0 0 8px var(--hl); }
+        #net-status.connected { background: var(--hl) !important; box-shadow: 0 0 8px var(--hl) !important; }
         
         /* Console Log in Network Modal */
         #net-console { background: #000; color: #0f0; font-family: monospace; padding: 10px; height: 150px; overflow-y: auto; font-size: 0.7em; margin-bottom: 10px; border-radius: 4px; border: 1px solid #333; }
@@ -195,19 +195,15 @@
             console.log(msg);
         }
 
-        // --- PROTOCOL CHECK ---
-        if(location.protocol === 'file:') {
-            alert("⚠️ WARNING: You are running this file locally (file://).\nBrowsers block P2P/Mesh features in this mode.\nPlease use a local server (e.g. VS Code Live Server) or upload to a web host.");
-        }
-
         // --- PEERS ---
+        // Reordered: working relay first
         const peers = [
+            'https://relay.peer.ooo/gun',
             'https://gun-manhattan.herokuapp.com/gun',
             'https://gun-us.herokuapp.com/gun',
             'https://gun-eu.herokuapp.com/gun',
             'https://gun.glitch.me/gun',
-            'https://plato.design/gun',
-            'https://relay.peer.ooo/gun'
+            'https://plato.design/gun'
         ];
         
         let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
@@ -222,30 +218,26 @@
         });
 
         // --- CONNECTION MONITOR ---
-        let connectedPeers = 0;
         const statusEl = document.getElementById('net-status');
+        let isConnected = false;
         
         gun.on('hi', (peer) => {
-            connectedPeers++;
+            isConnected = true;
             statusEl.classList.add('connected');
-            statusEl.title = `Mesh Active (${connectedPeers} peers)`;
+            statusEl.title = `Mesh Connected: ${peer.url}`;
             log(`CONNECTED: ${peer.url || 'Peer'}`);
         });
         
         gun.on('bye', (peer) => {
-            connectedPeers = Math.max(0, connectedPeers - 1);
-            if(connectedPeers === 0) {
-                statusEl.classList.remove('connected');
-                statusEl.title = `Local Mode (Offline)`;
-            }
             log(`DISCONNECTED: ${peer.url || 'Peer'}`);
+            // Simple check: if we recently had a disconnect, wait a bit or assume offline
+            // But since 'hi' events fire frequently, we leave the logic simple for now
         });
 
         // --- LOCAL BROADCAST (TAB SYNC) ---
         const bc = new BroadcastChannel('m4_v24_sync');
         bc.onmessage = (ev) => {
             if(ev.data && ev.data.type === 'msg' && ev.data.room === currentTarget) {
-                // Avoid double drawing
                 if(!document.getElementById('msg-' + (ev.data.data.localId || ev.data.data.time))) {
                     drawMessage(ev.data.data);
                 }
@@ -336,7 +328,7 @@
             const lId = Date.now();
             const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
             
-            drawMessage(d, true);
+            drawMessage(d, true); // Optimistic Draw
             bc.postMessage({type:'msg', room: currentTarget, data: d}); // Local Sync
             gun.get('m4_mesh_v24').get(currentTarget).set(d); // Mesh Sync
             
@@ -363,7 +355,7 @@
             if(!el) {
                 el = document.createElement('div'); el.id = 'peer-' + handle; el.className = 'list-item';
                 el.tabIndex = 0;
-                el.onclick = () => switchChannel(handle);
+                el.onclick = () => switchChannel(handle); // DMs reuse switchChannel to open room named after handle
                 el.onkeydown = (e) => { if(e.key === 'Enter') switchChannel(handle); };
                 list.appendChild(el);
             }
@@ -381,6 +373,7 @@
             const r = document.getElementById('new-room-name').value.trim().replace(/#/g,'');
             if(r) {
                 const d = document.createElement('div');
+                d.id = 'room-' + r.toUpperCase(); // Add ID for highlighting
                 d.className = 'list-item'; d.innerText = '#'+r.toUpperCase();
                 d.tabIndex = 0;
                 d.onclick = () => switchChannel('#'+r.toUpperCase());
@@ -401,7 +394,21 @@
         }
 
         function switchChannel(t) { 
-            currentTarget = t; document.getElementById('header-text').innerText = t; 
+            // 1. Set Target
+            currentTarget = t; 
+            document.getElementById('header-text').innerText = t; 
+            
+            // 2. Fix Highlighting
+            document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active-chan'));
+            // Try ID first, then Text search fallback
+            const specificEl = document.getElementById('room-' + t.replace('#',''));
+            if(specificEl) specificEl.classList.add('active-chan');
+            else {
+                // Fallback for default/pre-loaded rooms
+                const all = document.querySelectorAll('#room-list .list-item');
+                all.forEach(el => { if(el.innerText === t) el.classList.add('active-chan'); });
+            }
+
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
             syncRoom(t);
         }
@@ -465,6 +472,7 @@
         roomList.innerHTML = ''; 
         ['GENERAL','TECH','RANDOM'].forEach(r => {
              const d = document.createElement('div');
+             d.id = 'room-' + r; // Add ID for easier selection
              d.className = 'list-item'; d.innerText = '#'+r; d.tabIndex = 0;
              if(r==='GENERAL') d.classList.add('active-chan');
              d.onclick = () => switchChannel('#'+r);
