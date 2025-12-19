@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
     <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%23007aff%22%2F%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2270%22%20fill%3D%22%23fff%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20x%3D%2215%22%3EM4%3C%2Ftext%3E%3C%2Fsvg%3E">
+    <!-- QR Code Library (Lightweight) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
@@ -138,16 +140,30 @@
     <!-- MODALS -->
     <div id="modal-network" class="modal">
         <div class="modal-box">
-            <h3>CONNECTION LOG</h3>
+            <h3>NETWORK</h3>
             <div id="net-console"></div>
-            <div style="font-size:0.8em; margin-bottom:10px;">
-                <strong>Connect via IP:</strong> <code>192.168.1.5:8765</code><br>
-                <strong>Magic Link:</strong> <code>m4.com/?connect=192.168...</code>
+            
+            <!-- Connection Input -->
+            <div style="font-size:0.8em; margin:10px 0;">
+                <strong>Connect via IP/URL:</strong>
             </div>
-            <div style="display:flex; gap:5px;">
-                <input id="new-peer-url" placeholder="wss://... or 1.2.3.4:8765" style="flex:1;">
-                <button class="btn" style="width:auto;" onclick="addPeer()">ADD</button>
+            <div style="display:flex; gap:5px; margin-bottom:15px;">
+                <input id="new-peer-url" placeholder="wss://... or IP:PORT" style="flex:1;">
+                <button class="btn" style="width:auto;" onclick="addPeer()">CONNECT</button>
             </div>
+
+            <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
+            
+            <!-- QR & Share Section -->
+            <div style="font-size:0.8em; margin-bottom:5px;"><strong>Share Connection (QR/Hash):</strong></div>
+            <div style="display:flex; justify-content:center; margin:10px 0; background:#fff; padding:10px; border-radius:4px;">
+                <canvas id="qr-code" style="width:150px; height:150px;"></canvas>
+            </div>
+            <div style="text-align:center;">
+                <button class="btn" style="font-size:0.8em; padding:5px 10px;" onclick="copyHashLink()">COPY HASH LINK</button>
+                <div id="share-feedback" style="font-size:0.7em; margin-top:5px; height:1.2em;"></div>
+            </div>
+
             <button class="btn" style="margin-top:15px;" onclick="closeModals()">CLOSE</button>
         </div>
     </div>
@@ -191,13 +207,10 @@
         function normalizePeerUrl(url) {
             url = url.trim();
             if(!url) return '';
-            // If just numbers and dots (IP) or localhost, add http://
             if(!url.startsWith('http') && !url.startsWith('ws')) {
                 url = 'http://' + url;
             }
-            // Ensure /gun at end
             if(!url.endsWith('/gun')) {
-                // remove trailing slash if exists then add /gun
                 url = url.replace(/\/$/, '') + '/gun';
             }
             return url;
@@ -205,8 +218,10 @@
 
         // --- URL PARAMS HANDLER ---
         const urlParams = new URLSearchParams(window.location.search);
-        // Support ?relay=... AND ?connect=...
-        const urlRelay = urlParams.get('relay') || urlParams.get('connect');
+        // Supports #c=BASE64 and ?connect=URL
+        const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
+        const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
+        
         let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
 
         if (urlRelay) {
@@ -216,7 +231,8 @@
                 localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
                 alert("New Relay Added: " + cleanUrl);
             }
-            window.history.replaceState({}, document.title, "/");
+            // Clean URL but keep protocol
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
 
         // --- LOGGING ---
@@ -247,15 +263,36 @@
             radisk: true
         });
 
+        // --- QR & HASH SHARING ---
+        function updateQR(url) {
+            const qr = new QRious({
+                element: document.getElementById('qr-code'),
+                value: window.location.origin + window.location.pathname + '#c=' + btoa(url),
+                size: 150
+            });
+        }
+
+        function copyHashLink() {
+            // Prefer custom peer if available, else first default
+            const activeUrl = savedPeers.length > 0 ? savedPeers[savedPeers.length-1] : peers[0];
+            const hash = btoa(activeUrl);
+            const fullLink = window.location.origin + window.location.pathname + '#c=' + hash;
+            
+            navigator.clipboard.writeText(fullLink).then(() => {
+                document.getElementById('share-feedback').innerText = "Link Copied!";
+                setTimeout(() => document.getElementById('share-feedback').innerText = "", 2000);
+            });
+        }
+
         // --- CONNECTION MONITOR ---
         const statusEl = document.getElementById('net-status');
-        let isConnected = false;
         
         gun.on('hi', (peer) => {
-            isConnected = true;
             statusEl.classList.add('connected');
             statusEl.title = `Mesh Connected: ${peer.url}`;
             log(`CONNECTED: ${peer.url || 'Peer'}`);
+            // Update QR to show this successful connection
+            if(peer.url) updateQR(peer.url);
         });
         
         gun.on('bye', (peer) => {
@@ -280,6 +317,7 @@
                 localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
                 gun.opt({ peers: [url] });
                 log(`Adding custom peer: ${url}`);
+                updateQR(url);
                 document.getElementById('new-peer-url').value = '';
             }
         }
@@ -298,7 +336,12 @@
         function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); document.getElementById('code-in').focus(); }
         function openModal(id) { 
             closeModals(); 
-            document.getElementById('modal-'+id).style.display = 'flex'; 
+            document.getElementById('modal-'+id).style.display = 'flex';
+            // Default QR if opening network
+            if(id === 'network') {
+                const activeUrl = savedPeers.length > 0 ? savedPeers[savedPeers.length-1] : peers[0];
+                updateQR(activeUrl);
+            }
         }
 
         // --- STATE ---
@@ -345,7 +388,6 @@
             announcePresence();
         }
 
-        // --- PRESENCE ---
         function announcePresence() {
             gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()});
         }
@@ -357,9 +399,9 @@
             const lId = Date.now();
             const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
             
-            drawMessage(d, true); // Optimistic Draw
-            bc.postMessage({type:'msg', room: currentTarget, data: d}); // Local Sync
-            gun.get('m4_mesh_v24').get(currentTarget).set(d); // Mesh Sync
+            drawMessage(d, true);
+            bc.postMessage({type:'msg', room: currentTarget, data: d}); 
+            gun.get('m4_mesh_v24').get(currentTarget).set(d); 
             
             i.value = "";
         }
@@ -423,25 +465,19 @@
         }
 
         function switchChannel(t) { 
-            // 1. Set Target
             currentTarget = t; 
             document.getElementById('header-text').innerText = t; 
-            
-            // 2. Fix Highlighting
             document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active-chan'));
-            // Try ID first, then Text search fallback
             const specificEl = document.getElementById('room-' + t.replace('#',''));
             if(specificEl) specificEl.classList.add('active-chan');
             else {
                 const all = document.querySelectorAll('#room-list .list-item');
                 all.forEach(el => { if(el.innerText === t) el.classList.add('active-chan'); });
             }
-
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
             syncRoom(t);
         }
 
-        // --- COMMANDS ---
         function runCode(manual = null) {
             const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
             const themes = ['light','dark','blue','purple','crimson','emerald','midnight','coffee','coffee-dark','solarized','amber'];
@@ -453,7 +489,6 @@
                 if(c === 'light') document.body.removeAttribute('data-theme');
             }
             else if(c.startsWith('connect ')) {
-                // Direct IP connect via console
                 let url = c.split(' ')[1];
                 if(url) {
                     url = normalizePeerUrl(url);
@@ -461,16 +496,6 @@
                     localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
                     gun.opt({ peers: [url] });
                     log(`Connecting to: ${url}`);
-                }
-            }
-            else if(c.startsWith('relay add ')) {
-                let url = c.split(' ')[2];
-                if(url) {
-                    url = normalizePeerUrl(url);
-                    savedPeers.push(url);
-                    localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
-                    gun.opt({ peers: [url] });
-                    log(`Added via console: ${url}`);
                 }
             }
             else if(c === 'relay list') {
