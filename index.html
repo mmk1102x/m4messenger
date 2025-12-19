@@ -2,450 +2,345 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
     <style>
         /* --- CORE VARIABLES --- */
-        :root {
-            --bg: #1a1a1a;
-            --sidebar: #111;
-            --text: #eee;
-            --accent: #00ff88;
-            --accent-text: #000;
-            --dim: #666;
-            --msg-bg: #222;
-            --msg-me: #004422;
-            --radius: 0px; /* Square Default */
-            --font: 'Courier New', monospace;
+        :root { 
+            --bg: #ffffff; --panel: #f2f2f7; --border: #d1d1d6; --text: #000; --text-dim: #8e8e93; 
+            --hl: #007aff; --hl-border: #007aff; --warn: #ff3b30; --input-bg: #fff; 
+            --msg-mine: #007aff; --msg-other: #e9e9eb; --mention: #ff9500;
+            --radius: 0px; --border-style: solid;
         }
 
         /* --- THEMES --- */
-        [data-theme="light"] { --bg: #fff; --sidebar: #eee; --text: #111; --accent: #000; --accent-text: #fff; --msg-bg: #f0f0f0; --msg-me: #ddd; }
-        [data-theme="blue"] { --bg: #0d1b2a; --sidebar: #050a10; --text: #e0e1dd; --accent: #415a77; --accent-text: #fff; --msg-bg: #1b263b; --msg-me: #0d1b2a; }
-        [data-theme="purple"] { --bg: #1a0b2e; --sidebar: #110524; --text: #e0d1ff; --accent: #762bd9; --accent-text: #fff; --msg-bg: #2d1b4e; --msg-me: #3a1c6e; }
-        [data-theme="crimson"] { --bg: #2a0a0a; --sidebar: #1a0000; --text: #ffcccc; --accent: #dc143c; --accent-text: #fff; --msg-bg: #3b0000; --msg-me: #5c0000; }
-        [data-theme="emerald"] { --bg: #052b18; --sidebar: #001a0d; --text: #ccffdd; --accent: #00cc66; --accent-text: #000; --msg-bg: #00331a; --msg-me: #004d26; }
-        [data-theme="midnight"] { --bg: #000000; --sidebar: #0a0a0a; --text: #cccccc; --accent: #333333; --accent-text: #fff; --msg-bg: #111111; --msg-me: #222222; }
-        [data-theme="coffee"] { --bg: #2b2118; --sidebar: #1f1610; --text: #dcc8b8; --accent: #a67c52; --accent-text: #000; --msg-bg: #3e2f24; --msg-me: #543d2e; }
-        [data-theme="solarized"] { --bg: #fdf6e3; --sidebar: #eee8d5; --text: #657b83; --accent: #b58900; --accent-text: #fff; --msg-bg: #fff; --msg-me: #eee; }
-        [data-theme="amber"] { --bg: #111; --sidebar: #000; --text: #ffb000; --accent: #ffb000; --accent-text: #000; --msg-bg: #222; --msg-me: #332200; }
+        [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-border: #0f0; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; }
+        
+        /* Coffee (Light/Reference) */
+        [data-theme="coffee"] { --bg: #fdf6e3; --panel: #eee8d5; --border: #d3af86; --text: #5d4037; --text-dim: #a1887f; --hl: #8d6e63; --hl-border: #8d6e63; --warn: #c62828; --input-bg: #fdf6e3; --msg-mine: #8d6e63; --msg-other: #efebe9; --mention: #bf360c; }
+        
+        /* Coffee-Dark (New Split) */
+        [data-theme="coffee-dark"] { --bg: #2b2118; --panel: #1f1610; --border: #3e2f24; --text: #dcc8b8; --text-dim: #8d6e63; --hl: #a67c52; --hl-border: #a67c52; --warn: #c62828; --input-bg: #1f1610; --msg-mine: #543d2e; --msg-other: #3e2f24; --mention: #ffccbc; }
+
+        [data-theme="emerald"] { --bg: #06100c; --panel: #0a1a14; --border: #143a2b; --text: #2ecc71; --text-dim: #1d6e41; --hl: #2ecc71; --hl-border: #2ecc71; --warn: #ff4d4d; --input-bg: #06100c; --msg-mine: #1d6e41; --msg-other: #122b21; --mention: #fff; }
+        [data-theme="midnight"] { --bg: #00040a; --panel: #000814; --border: #002244; --text: #5080ff; --text-dim: #004488; --hl: #5080ff; --hl-border: #5080ff; --warn: #ff453a; --input-bg: #00040a; --msg-mine: #004488; --msg-other: #001122; --mention: #fff; }
+        [data-theme="amber"] { --bg: #0d0b00; --panel: #141100; --border: #443300; --text: #ffbf00; --text-dim: #886600; --hl: #ffbf00; --hl-border: #ffbf00; --warn: #ff4d4d; --input-bg: #0d0b00; --msg-mine: #443300; --msg-other: #1a1600; --mention: #fff; }
+        [data-theme="solarized"] { --bg: #002b36; --panel: #073642; --border: #586e75; --text: #839496; --text-dim: #586e75; --hl: #268bd2; --hl-border: #268bd2; --warn: #dc322f; --input-bg: #002b36; --msg-mine: #073642; --msg-other: #001e26; --mention: #b58900; }
+        [data-theme="blue"] { --bg: #001f3f; --panel: #001a33; --border: #003366; --text: #00e5ff; --text-dim: #007acc; --hl: #00e5ff; --hl-border: #003366; --warn: #ff4136; --input-bg: #001226; --msg-mine: #003366; --msg-other: #001a33; --mention: #fff; }
+        [data-theme="purple"] { --bg: #0f0a1e; --panel: #1a1233; --border: #2d1e5e; --text: #bf5af2; --text-dim: #5e2d91; --hl: #bf5af2; --hl-border: #2d1e5e; --warn: #ff375f; --input-bg: #0f0a1e; --msg-mine: #5e2d91; --msg-other: #1c1c1e; --mention: #00ffff; }
+        [data-theme="crimson"] { --bg: #1a0505; --panel: #280a0a; --border: #441111; --text: #ff4d4d; --text-dim: #882222; --hl: #ff4d4d; --hl-border: #441111; --warn: #ffcc00; --input-bg: #0d0101; --msg-mine: #661111; --msg-other: #110303; --mention: #ffffff; }
 
         /* --- GLOBAL RESET & A11Y --- */
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; border-radius: var(--radius); }
-        body { font-family: var(--font); background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; transition: 0.3s; }
+        * { box-sizing: border-box; outline: none; border-radius: var(--radius); }
+        body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
         
-        /* High Contrast Focus for Keyboard Users */
-        *:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: -2px;
-            z-index: 10;
-        }
-
-        button { cursor: pointer; border: none; background: var(--accent); color: var(--accent-text); padding: 10px; font-weight: bold; text-transform: uppercase; }
-        input, textarea { background: var(--msg-bg); border: 1px solid var(--dim); color: var(--text); padding: 10px; width: 100%; font-family: inherit; }
-        
-        /* --- SNOW CANVAS --- */
-        #snow-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; display: none; }
+        /* Keyboard Focus Indicators */
+        *:focus-visible { outline: 2px solid var(--hl); outline-offset: -2px; z-index: 10; }
 
         /* --- LAYOUT --- */
-        #sidebar { width: 300px; background: var(--sidebar); display: flex; flex-direction: column; border-right: 1px solid var(--dim); z-index: 100; transition: transform 0.3s; }
-        #main { flex: 1; display: flex; flex-direction: column; position: relative; }
-
-        /* --- SIDEBAR COMPONENTS --- */
-        .brand { padding: 15px; background: var(--accent); color: var(--accent-text); font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        .lists { flex: 1; overflow-y: auto; padding: 10px; }
-        .section-title { font-size: 0.8em; color: var(--dim); margin-top: 15px; margin-bottom: 5px; text-transform: uppercase; }
-        .list-item { padding: 8px; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; justify-content: space-between; }
-        .list-item:hover, .list-item:focus { background: var(--msg-bg); border-color: var(--accent); }
-        .list-item.active { background: var(--accent); color: var(--accent-text); }
-        
-        /* Command Box */
-        .cmd-area { padding: 10px; border-top: 1px solid var(--dim); background: var(--sidebar); }
-        #cmd-feedback { font-size: 0.8em; color: var(--accent); min-height: 1.2em; margin-bottom: 5px; }
-
-        /* --- CHAT AREA --- */
-        #chat-header { padding: 15px; border-bottom: 1px solid var(--dim); background: var(--bg); display: flex; justify-content: space-between; align-items: center; }
-        #messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; padding: 10px; background: var(--msg-bg); border: 1px solid var(--dim); align-self: flex-start; word-wrap: break-word; }
-        .msg.me { align-self: flex-end; background: var(--msg-me); border-color: var(--accent); }
-        .msg-meta { font-size: 0.7em; color: var(--dim); margin-bottom: 2px; display: block; }
-        
-        #input-area { padding: 20px; border-top: 1px solid var(--dim); display: flex; gap: 10px; background: var(--bg); }
-        #msg-input { flex: 1; resize: none; height: 50px; }
-        #send-btn { width: 80px; }
-
-        /* --- MODALS --- */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 2000; }
-        .modal-content { background: var(--bg); border: 2px solid var(--accent); padding: 20px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
-        .modal h2 { margin-bottom: 15px; color: var(--accent); border-bottom: 1px solid var(--dim); padding-bottom: 5px; }
-        .modal-row { display: flex; justify-content: space-between; margin: 5px 0; padding: 5px 0; border-bottom: 1px solid #333; }
-        .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .theme-btn { padding: 15px; border: 1px solid var(--dim); text-align: center; cursor: pointer; }
-        .theme-btn:focus { border-color: var(--accent); }
-
-        /* --- MOBILE DRAWER --- */
-        @media (max-width: 768px) {
-            #sidebar { position: fixed; height: 100%; transform: translateX(-100%); width: 80%; box-shadow: 2px 0 10px #000; }
-            #sidebar.open { transform: translateX(0); }
-            #menu-toggle { display: block !important; }
+        #sidebar { 
+            width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); 
+            display: flex; flex-direction: column; padding: 20px; z-index: 1000; height: 100dvh; transition: transform 0.3s;
         }
-        #menu-toggle { display: none; background: transparent; color: var(--text); font-size: 1.5em; padding: 0; }
 
-        /* --- UTILS --- */
-        .hidden { display: none !important; }
+        #logo-container { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 25px; }
+        #logo-icon { width: 45px; height: 45px; background: var(--hl); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5em; flex-shrink: 0; }
+        #logo-text { font-weight: 900; font-size: 1.3em; letter-spacing: -1px; }
+        
+        #identity { text-align: center; margin-bottom: 25px; border-bottom: 1px var(--border-style) var(--border); padding-bottom: 15px; }
+        #my-name-display { font-weight: 900; font-size: 1.2em; cursor: pointer; padding: 5px; }
+        #my-handle-display { font-size: 0.85em; opacity: 0.6; cursor: pointer; padding: 5px; }
+        #my-name-display:hover, #my-handle-display:hover, #my-name-display:focus, #my-handle-display:focus { background: var(--bg); outline: 1px solid var(--hl); }
+
+        #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; }
+        #header { height: 60px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; align-items: center; padding: 0 20px; }
+        #hamburger { display: none; cursor: pointer; font-size: 1.5em; margin-right: 15px; }
+
+        .section-title { color: var(--text-dim); font-size: 0.75em; margin: 15px 0 8px 0; font-weight: 800; text-transform: uppercase; }
+        .scroll-list { overflow-y: auto; flex: 1; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; }
+        .list-item { padding: 12px; cursor: pointer; border-bottom: 1px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; transition: 0.2s; }
+        .list-item:hover, .list-item:focus { background: var(--msg-other); }
+        .active-chan { background: var(--hl) !important; color: #fff !important; font-weight: 800; }
+        
+        .btn, input, #send-btn, #btn-run { border-radius: var(--radius) !important; transition: 0.2s; border: 2px var(--border-style) var(--border); font-family: inherit; }
+        .btn { background: var(--panel); color: var(--text); padding: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        .btn:focus { border-color: var(--hl); }
+        
+        #chat { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 12px 16px; max-width: 80%; line-height: 1.4em; word-wrap: break-word; border: 2px var(--border-style) var(--border); position: relative; }
+        .msg-mine { align-self: flex-end; background: var(--msg-mine); color: #fff; }
+        .msg-other { align-self: flex-start; background: var(--msg-other); }
+        
+        #controls-form { padding: 15px; background: var(--panel); border-top: 2px var(--border-style) var(--border); display: flex; gap: 10px; padding-bottom: calc(15px + env(safe-area-inset-bottom)); }
+        #message { flex-grow: 1; background: var(--input-bg); color: var(--text); padding: 12px; font-size: 16px; }
+        #send-btn { background: var(--hl-border); color: #fff; padding: 0 25px; font-weight: 900; cursor: pointer; border: none !important; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.7); z-index: 99999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-box { background: var(--bg); border: 4px var(--border-style) var(--hl-border); padding: 30px; width: 450px; max-width: 90%; color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+
+        #snow-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999; display: none; }
+
+        @media (max-width: 768px) {
+            #sidebar { position: fixed; transform: translateX(-100%); width: 280px; }
+            #sidebar.open { transform: translateX(0); }
+            #hamburger { display: block; }
+        }
     </style>
 </head>
-<body>
-
-    <!-- Global Effects -->
+<body data-theme="light">
     <canvas id="snow-canvas"></canvas>
-
-    <!-- Modals -->
-    <div id="modal-help" class="modal">
-        <div class="modal-content">
-            <h2>Commands</h2>
-            <div class="modal-row"><span>clean</span><span>Factory Reset</span></div>
-            <div class="modal-row"><span>soft</span><span>Toggle Radius</span></div>
-            <div class="modal-row"><span>snow</span><span>Toggle Snow</span></div>
-            <div class="modal-row"><span>theme</span><span>Theme Picker</span></div>
-            <div class="modal-row"><span>stats</span><span>Network Stats</span></div>
-            <div class="modal-row"><span>nick @u Name</span><span>Set Alias</span></div>
-            <div class="modal-row"><span>lang</span><span>Switch Lang</span></div>
-            <br>
-            <h2>Keyboard Shortcuts</h2>
-            <div class="modal-row"><span>Alt + C</span><span>Focus Chat</span></div>
-            <div class="modal-row"><span>Alt + M</span><span>Command Line</span></div>
-            <div class="modal-row"><span>Alt + R</span><span>Room List</span></div>
-            <div class="modal-row"><span>Esc</span><span>Close Modals</span></div>
-            <button onclick="closeModals()" style="width:100%; margin-top:10px;">Close (Esc)</button>
-        </div>
-    </div>
-
-    <div id="modal-theme" class="modal">
-        <div class="modal-content">
-            <h2>Select Theme</h2>
-            <div class="theme-grid" id="theme-grid"></div>
-            <button onclick="closeModals()" style="width:100%; margin-top:10px;">Close (Esc)</button>
-        </div>
-    </div>
-
-    <div id="modal-stats" class="modal">
-        <div class="modal-content">
-            <h2>Network Stats</h2>
-            <pre id="stats-output"></pre>
-            <button onclick="closeModals()" style="width:100%; margin-top:10px;">Close (Esc)</button>
-        </div>
-    </div>
-
-    <!-- Main App -->
+    
     <div id="sidebar">
-        <div class="brand">
-            <span>M4</span><span>messenger</span>
+        <div id="logo-container">
+            <div id="logo-icon">M4</div>
+            <div id="logo-text">messenger</div>
         </div>
-        <div class="lists" id="sidebar-lists">
-            <div class="section-title">Rooms</div>
-            <div id="room-list"></div>
-            <div class="section-title">Peers</div>
-            <div id="user-list"></div>
+        
+        <div id="identity">
+            <div id="my-name-display" tabindex="0" onclick="startRenaming('name')" onkeydown="if(event.key==='Enter') startRenaming('name')">Guest</div>
+            <div id="my-handle-display" tabindex="0" onclick="startRenaming('handle')" onkeydown="if(event.key==='Enter') startRenaming('handle')">@handle</div>
         </div>
-        <div class="cmd-area">
-            <div id="cmd-feedback"></div>
-            <input type="text" id="cmd-input" placeholder="Type command..." autocomplete="off">
+
+        <div class="section-title"><span id="lbl-rooms">ROOMS</span> <span onclick="openModal('create-room')" style="cursor:pointer; color:var(--hl); float:right;">[+]</span></div>
+        <div id="room-list" class="scroll-list"></div>
+        <div class="section-title" id="lbl-users">USERS</div>
+        <div id="user-list" class="scroll-list"></div>
+        
+        <div id="bottom-panel" style="margin-top: auto;">
+            <form onsubmit="event.preventDefault(); runCode();" style="display:flex; gap:5px;">
+                <input type="search" id="code-in" placeholder="Command..." autocomplete="off" style="flex-grow:1; background:var(--input-bg); border:2px var(--border-style) var(--border); color:var(--text); padding:10px; font-size:14px;">
+                <button type="submit" id="btn-run" style="background:var(--hl); color:#fff; width: 70px; cursor:pointer; font-weight:900;">RUN</button>
+            </form>
+            <div id="cmd-feedback" style="font-size: 0.7em; color: var(--hl); text-align: center; margin-top:5px; height:1em; font-weight:bold;"></div>
         </div>
     </div>
 
     <div id="main">
-        <div id="chat-header">
-            <button id="menu-toggle" onclick="toggleSidebar()">☰</button>
-            <span id="chat-title">General</span>
-            <span id="connection-status" style="font-size:0.8em; color: var(--accent);">●</span>
+        <div id="header">
+            <div id="hamburger" onclick="toggleSidebar()">☰</div>
+            <div id="header-text">#GENERAL</div>
         </div>
-        <div id="messages">
-            <div class="msg">
-                <span class="msg-meta">System</span>
-                Welcome to M4messenger. Decentralized. No Auth. Square.
+        <div id="chat"></div>
+        <form id="controls-form" onsubmit="event.preventDefault(); send();">
+            <input type="search" id="message" placeholder="Message..." autocomplete="off">
+            <button id="send-btn" type="submit">SEND</button>
+        </form>
+    </div>
+
+    <!-- MODALS -->
+    <div id="modal-create-room" class="modal"><div class="modal-box"><h3>NEW ROOM</h3><input id="new-room-name" placeholder="Name"><button class="btn" onclick="createRoom()" style="margin-top:10px;">CREATE</button><button class="btn" style="margin-top:5px;border:none;background:none;color:var(--text-dim);" onclick="closeModals()">CANCEL</button></div></div>
+    
+    <div id="modal-help" class="modal">
+        <div class="modal-box">
+            <h3>HELP</h3>
+            <div id="help-list" style="white-space:pre-line;font-size:0.85em;line-height:1.6em;margin-bottom:15px;"></div>
+            <h4>Hotkeys</h4>
+            <div style="font-size:0.8em; margin-bottom:10px;">
+                Alt+C: Focus Chat | Alt+M: Command<br>
+                Alt+R: Rooms | Esc: Close
             </div>
+            <button class="btn" onclick="closeModals()">CLOSE</button>
         </div>
-        <div id="input-area">
-            <textarea id="msg-input" placeholder="Message... (Enter to send)"></textarea>
-            <button id="send-btn">RUN</button>
+    </div>
+    
+    <div id="modal-themes" class="modal">
+        <div class="modal-box">
+            <h3>THEMES</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height: 50vh; overflow-y:auto;">
+                <button class="btn" onclick="runCode('light');closeModals()">LIGHT</button>
+                <button class="btn" onclick="runCode('dark');closeModals()" style="background:#000; color:#0f0;">DARK</button>
+                <button class="btn" onclick="runCode('coffee');closeModals()" style="background:#fdf6e3; color:#5d4037;">COFFEE (Light)</button>
+                <button class="btn" onclick="runCode('coffee-dark');closeModals()" style="background:#1f1610; color:#dcc8b8;">COFFEE (Dark)</button>
+                <button class="btn" onclick="runCode('emerald');closeModals()" style="background:#0a1a14; color:#2ecc71;">EMERALD</button>
+                <button class="btn" onclick="runCode('midnight');closeModals()" style="background:#000814; color:#5080ff;">MIDNIGHT</button>
+                <button class="btn" onclick="runCode('solarized');closeModals()" style="background:#002b36; color:#839496;">SOLARIZED</button>
+                <button class="btn" onclick="runCode('blue');closeModals()" style="background:#001f3f; color:#00e5ff;">BLUE</button>
+                <button class="btn" onclick="runCode('purple');closeModals()" style="background:#0f0a1e; color:#bf5af2;">PURPLE</button>
+                <button class="btn" onclick="runCode('crimson');closeModals()" style="background:#1a0505; color:#ff4d4d;">CRIMSON</button>
+            </div>
+            <button class="btn" style="margin-top:15px;" onclick="closeModals()">CLOSE</button>
         </div>
     </div>
 
     <script>
-        // --- CONFIG & STATE ---
-        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun', 'https://peer.wall.org/gun', 'https://gundb.herokuapp.com/gun']);
-        const user = gun.user();
-        const state = {
-            currentRoom: 'general',
-            username: 'Guest-' + Math.random().toString(36).substr(2, 4),
-            theme: localStorage.getItem('m4_theme') || 'dark',
-            radius: localStorage.getItem('m4_radius') === 'true',
-            snow: localStorage.getItem('m4_snow') === 'true',
-            lang: localStorage.getItem('m4_lang') || 'eng'
-        };
-
-        // --- DOM ELEMENTS ---
-        const els = {
-            input: document.getElementById('msg-input'),
-            msgs: document.getElementById('messages'),
-            cmd: document.getElementById('cmd-input'),
-            feedback: document.getElementById('cmd-feedback'),
-            rooms: document.getElementById('room-list'),
-            users: document.getElementById('user-list'),
-            title: document.getElementById('chat-title'),
-            snow: document.getElementById('snow-canvas')
-        };
-
-        // --- INIT ---
-        window.onload = () => {
-            applyTheme(state.theme);
-            applyRadius(state.radius);
-            if(state.snow) toggleSnow(true);
-            renderRooms();
-            joinRoom('general');
-            
-            // Generate Random User if not exists
-            if(!localStorage.getItem('m4_alias')) {
-                localStorage.setItem('m4_alias', state.username);
-            } else {
-                state.username = localStorage.getItem('m4_alias');
-            }
-            
-            // Announce presence
-            gun.get('m4_peers').get(state.username).put(new Date().getTime());
-            setInterval(() => gun.get('m4_peers').get(state.username).put(new Date().getTime()), 5000);
-        };
-
-        // --- KEYBOARD & A11Y LOGIC ---
+        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+        
+        // --- GLOBALS & HOTKEYS ---
+        window.cmd = (c) => runCode(c);
+        
         document.addEventListener('keydown', (e) => {
-            // Global Shortcuts
-            if (e.altKey && e.key === 'c') { e.preventDefault(); els.input.focus(); }
-            if (e.altKey && e.key === 'm') { e.preventDefault(); els.cmd.focus(); }
-            if (e.altKey && e.key === 'r') { e.preventDefault(); els.rooms.querySelector('.list-item')?.focus(); }
+            if (e.altKey && e.key === 'c') { e.preventDefault(); document.getElementById('message').focus(); }
+            if (e.altKey && e.key === 'm') { e.preventDefault(); document.getElementById('code-in').focus(); }
+            if (e.altKey && e.key === 'r') { e.preventDefault(); document.querySelector('.list-item')?.focus(); }
             if (e.key === 'Escape') closeModals();
         });
 
-        els.input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); document.getElementById('code-in').focus(); }
+        function openModal(id) { closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; }
 
-        els.cmd.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                processCommand(els.cmd.value);
-                els.cmd.value = '';
-            }
-        });
+        // --- IDENTITY & STATE ---
+        let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
+        let myName = localStorage.getItem('m4_name') || "Guest";
+        localStorage.setItem('m4_handle', myHandle);
 
-        // --- CORE FUNCTIONS ---
-        function sendMessage() {
-            const txt = els.input.value.trim();
-            if(!txt) return;
-            const msg = {
-                text: txt,
-                user: state.username,
-                ts: Date.now()
-            };
-            gun.get('m4_rooms').get(state.currentRoom).set(msg);
-            els.input.value = '';
+        let currentTarget = "#GENERAL", currentLang = localStorage.getItem('m4_lang') || 'en';
+
+        const trans = {
+            en: { send: "SEND", rooms: "ROOMS", users: "USERS", help: "soft: corners\nsnow: toggle\nclean: wipe cache\ntheme: picker\nnick @user Name\nrus/eng/ger/spa/fra: language\n\nThemes: light, dark, coffee, coffee-dark, etc." },
+            ru: { send: "ОТПРАВИТЬ", rooms: "КОМНАТЫ", users: "ЛЮДИ", help: "soft: углы\nsnow: снег\nclean: очистка кэша\ntheme: темы\nnick @user Имя\n\nТемы: light, dark, coffee..." }
+        };
+
+        // --- RENAME LOGIC ---
+        function startRenaming(type) { 
+            const el = document.getElementById(type === 'name' ? 'my-name-display' : 'my-handle-display');
+            if(el.querySelector('input')) return;
+            const val = type === 'name' ? myName : myHandle;
+            el.innerHTML = `<input id="ren-in" value="${val}" style="width:80%; font-size:1em; padding:2px;" onblur="finishRename('${type}')" onkeypress="if(event.key==='Enter') finishRename('${type}')">`;
+            setTimeout(() => document.getElementById('ren-in').focus(), 50);
+        }
+        function finishRename(type) {
+            const i = document.getElementById('ren-in'); if(!i) return;
+            let n = i.value.trim().replace(/\s/g, ''); if(!n) n = (type==='name'?'Guest':'user');
+            if(type === 'name') { myName = n; localStorage.setItem('m4_name', n); }
+            else { myHandle = n; localStorage.setItem('m4_handle', n); }
+            document.getElementById('my-name-display').innerText = myName;
+            document.getElementById('my-handle-display').innerText = '@' + myHandle;
+            gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()});
         }
 
-        function joinRoom(roomName) {
-            state.currentRoom = roomName;
-            els.title.innerText = '#' + roomName;
-            els.msgs.innerHTML = ''; // Clear view
-            
-            // Subscribe to room
-            gun.get('m4_rooms').get(roomName).map().once((data, id) => {
-                if(!data) return;
-                renderMessage(data);
-            });
+        // --- CORE ---
+        setInterval(() => {
+            gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()});
+        }, 10000);
 
-            // Mobile Drawer Logic
+        function send() {
+            const i = document.getElementById('message'); if(!i.value) return;
+            const lId = Date.now();
+            const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
+            drawMessage(d, true);
+            gun.get('m4_mesh_v24').get(currentTarget).set(d);
+            i.value = "";
+        }
+
+        gun.get('m4_mesh_v24').get(currentTarget).map().on((d) => {
+            if(!d || document.getElementById('msg-' + (d.localId || d.time))) return;
+            drawMessage(d);
+        });
+
+        gun.get('m4_users_v24').map().on((user, handle) => {
+            if(!user || handle === myHandle) return;
+            if(Date.now() - user.lastSeen > 30000) return;
+            renderPeer(user.name, handle);
+        });
+
+        // --- RENDERERS (With A11Y) ---
+        function renderPeer(name, handle) {
+            const list = document.getElementById('user-list');
+            let el = document.getElementById('peer-' + handle);
+            if(!el) {
+                el = document.createElement('div'); el.id = 'peer-' + handle; el.className = 'list-item';
+                el.tabIndex = 0; // A11Y
+                el.onclick = () => switchChannel(handle);
+                el.onkeydown = (e) => { if(e.key === 'Enter') switchChannel(handle); };
+                list.appendChild(el);
+            }
+            el.innerText = `${name} (@${handle})`;
+        }
+
+        function createRoom() {
+            const r = document.getElementById('new-room-name').value.trim().replace(/#/g,'');
+            if(r) {
+                const d = document.createElement('div');
+                d.className = 'list-item'; d.innerText = '#'+r.toUpperCase();
+                d.tabIndex = 0;
+                d.onclick = () => switchChannel('#'+r.toUpperCase());
+                d.onkeydown = (e) => { if(e.key==='Enter') switchChannel('#'+r.toUpperCase()); };
+                document.getElementById('room-list').appendChild(d);
+                closeModals();
+            }
+        }
+
+        function drawMessage(d, isP=false) {
+            const chat = document.getElementById('chat'); const div = document.createElement('div');
+            const isMe = d.handle === myHandle;
+            div.id = 'msg-' + (d.localId || d.time);
+            div.className = 'msg ' + (isMe ? 'msg-mine' : 'msg-other');
+            let content = (!isMe) ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${d.from} (@${d.handle})</span>` : "";
+            div.innerHTML = content + d.msg.replace(new RegExp(`@${myHandle}\\b`, 'gi'), `<span class="mention">@${myHandle}</span>`);
+            chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+        }
+
+        function switchChannel(t) { 
+            currentTarget = t; document.getElementById('header-text').innerText = t; 
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('chat').innerHTML = ""; 
         }
 
-        function renderMessage(data) {
-            const div = document.createElement('div');
-            div.className = `msg ${data.user === state.username ? 'me' : ''}`;
-            div.innerHTML = `<span class="msg-meta">${data.user}</span>${data.text}`;
-            els.msgs.appendChild(div);
-            els.msgs.scrollTop = els.msgs.scrollHeight;
-        }
-
-        // --- SIDEBAR LISTS (With Keyboard Support) ---
-        const defaultRooms = ['general', 'random', 'tech', 'crypto'];
-        function renderRooms() {
-            els.rooms.innerHTML = '';
-            defaultRooms.forEach(r => {
-                const div = document.createElement('div');
-                div.className = 'list-item';
-                div.innerText = '#' + r;
-                div.tabIndex = 0; // A11Y
-                div.onclick = () => joinRoom(r);
-                div.onkeydown = (e) => { if(e.key === 'Enter') joinRoom(r); };
-                els.rooms.appendChild(div);
-            });
-        }
-
-        // Listen for peers
-        gun.get('m4_peers').map().on((ts, name) => {
-            if(Date.now() - ts > 10000) return; // Ignore old
-            if(document.getElementById('u-'+name)) return;
+        // --- COMMANDS ---
+        function runCode(manual = null) {
+            const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
+            const themes = ['light','dark','blue','purple','crimson','emerald','midnight','coffee','coffee-dark','solarized','amber'];
             
-            const div = document.createElement('div');
-            div.id = 'u-'+name;
-            div.className = 'list-item';
-            div.innerText = '@' + name;
-            div.tabIndex = 0; // A11Y
-            div.onclick = () => { /* Direct Msg Logic Placeholder */ };
-            els.users.appendChild(div);
+            if(themes.includes(c)) { 
+                document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); 
+                if(c === 'light') document.body.removeAttribute('data-theme');
+            }
+            else if(c === 'soft') { const cur = localStorage.getItem('m4_soft')==='true'; applySoft(!cur?'true':'false'); localStorage.setItem('m4_soft', !cur?'true':'false'); }
+            else if(c === 'snow') { const cur = localStorage.getItem('m4_snow')==='true'; applySnow(!cur?'true':'false'); localStorage.setItem('m4_snow', !cur?'true':'false'); }
+            else if(c === 'clean') { localStorage.clear(); location.reload(); }
+            else if(c === 'help') { document.getElementById('help-list').innerText = (trans[currentLang] || trans.en).help; openModal('help'); }
+            else if(c === 'theme') openModal('themes');
+            else if(c.startsWith('name ')) { /* Legacy command support, though UI is better now */ }
+            else if(['rus','eng','ger','fra','spa'].includes(c)) { setLanguage(c === 'rus' ? 'ru' : c); }
+            
+            const fb = document.getElementById('cmd-feedback'); fb.innerText = "OK: " + c; fb.style.opacity = 1; setTimeout(() => fb.style.opacity = 0, 3000); i.value = "";
+        }
+
+        function applySoft(v) { document.documentElement.style.setProperty('--radius', v === 'true' ? '18px' : '0px'); }
+        function setLanguage(l) { 
+            const t = trans[l] || trans.en; currentLang = l; localStorage.setItem('m4_lang', l); 
+            document.getElementById('lbl-rooms').innerText = t.rooms;
+            document.getElementById('lbl-users').innerText = t.users;
+            document.getElementById('send-btn').innerText = t.send;
+        }
+
+        let sInt = null; 
+        function applySnow(v) { 
+            const c = document.getElementById('snow-canvas'); 
+            if (v === 'true') { c.style.display = 'block'; if (!sInt) startSnow(); } 
+            else { c.style.display = 'none'; clearInterval(sInt); sInt = null; } 
+        }
+        function startSnow() {
+            const c = document.getElementById('snow-canvas'); const ctx = c.getContext('2d');
+            let w = c.width = window.innerWidth, h = c.height = window.innerHeight, fs = [];
+            for(let i=0; i<80; i++) fs.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*3+1, d: Math.random()*0.5+0.5});
+            function draw() { ctx.clearRect(0,0,w,h); ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.beginPath(); for(let f of fs){ ctx.moveTo(f.x,f.y); ctx.arc(f.x,f.y,f.r, 0, Math.PI*2,true); } ctx.fill(); move(); }
+            function move() { for(let f of fs){ f.y += f.d; if(f.y>h){ f.x=Math.random()*w; f.y=-10; } } }
+            sInt = setInterval(draw, 33);
+        }
+
+        // --- BOOT ---
+        document.getElementById('my-name-display').innerText = myName;
+        document.getElementById('my-handle-display').innerText = '@' + myHandle;
+        document.body.setAttribute('data-theme', localStorage.getItem('m4_theme') || 'light');
+        applySoft(localStorage.getItem('m4_soft')); 
+        applySnow(localStorage.getItem('m4_snow'));
+        setLanguage(localStorage.getItem('m4_lang') || 'en');
+        
+        // Init default room
+        const roomList = document.getElementById('room-list');
+        roomList.innerHTML = ''; 
+        ['GENERAL','TECH','RANDOM'].forEach(r => {
+             const d = document.createElement('div');
+             d.className = 'list-item'; d.innerText = '#'+r; d.tabIndex = 0;
+             if(r==='GENERAL') d.classList.add('active-chan');
+             d.onclick = () => switchChannel('#'+r);
+             d.onkeydown = (e) => { if(e.key==='Enter') switchChannel('#'+r); };
+             roomList.appendChild(d);
         });
-
-        // --- COMMAND SYSTEM ---
-        function processCommand(str) {
-            const [cmd, ...args] = str.trim().split(' ');
-            let feedback = 'Done.';
-            
-            switch(cmd.toLowerCase()) {
-                case 'clean':
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    location.reload();
-                    break;
-                case 'soft':
-                    state.radius = !state.radius;
-                    localStorage.setItem('m4_radius', state.radius);
-                    applyRadius(state.radius);
-                    feedback = `Radius: ${state.radius ? '18px' : '0px'}`;
-                    break;
-                case 'snow':
-                    state.snow = !state.snow;
-                    localStorage.setItem('m4_snow', state.snow);
-                    toggleSnow(state.snow);
-                    feedback = `Snow: ${state.snow ? 'ON' : 'OFF'}`;
-                    break;
-                case 'theme':
-                    openModal('theme');
-                    renderThemePicker();
-                    feedback = 'Opened Theme Picker';
-                    break;
-                case 'help':
-                    openModal('help');
-                    feedback = 'Opened Help';
-                    break;
-                case 'stats':
-                    openModal('stats');
-                    document.getElementById('stats-output').innerText = JSON.stringify(gun._.opt.peers, null, 2);
-                    feedback = 'Opened Stats';
-                    break;
-                case 'nick':
-                    if(args[0] && args[0].startsWith('@')) {
-                        // Alias logic here
-                        feedback = `Alias set for ${args[0]}`;
-                    } else { feedback = 'Usage: nick @user Name'; }
-                    break;
-                default:
-                    feedback = 'Unknown command. Try help.';
-            }
-            els.feedback.innerText = feedback;
-            setTimeout(() => els.feedback.innerText = '', 3000);
-        }
-
-        // --- THEME ENGINE ---
-        function applyTheme(name) {
-            document.documentElement.setAttribute('data-theme', name);
-            localStorage.setItem('m4_theme', name);
-            state.theme = name;
-        }
-
-        function applyRadius(isSoft) {
-            document.documentElement.style.setProperty('--radius', isSoft ? '18px' : '0px');
-        }
-
-        function renderThemePicker() {
-            const grid = document.getElementById('theme-grid');
-            grid.innerHTML = '';
-            const themes = ['light', 'dark', 'blue', 'purple', 'crimson', 'emerald', 'midnight', 'coffee', 'solarized', 'amber'];
-            themes.forEach(t => {
-                const btn = document.createElement('div');
-                btn.className = 'theme-btn';
-                btn.innerText = t.toUpperCase();
-                btn.tabIndex = 0; // A11Y
-                btn.onclick = () => applyTheme(t);
-                btn.onkeydown = (e) => { if(e.key === 'Enter') applyTheme(t); };
-                btn.setAttribute('data-theme', t); // Preview style
-                // Inline styles for preview
-                if(t==='light') btn.style.background='#fff';
-                if(t==='dark') btn.style.background='#000';
-                // ... (simplified preview)
-                grid.appendChild(btn);
-            });
-        }
-
-        // --- UI UTILS ---
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-        function openModal(id) {
-            closeModals();
-            document.getElementById('modal-'+id).style.display = 'flex';
-            document.getElementById('modal-'+id).querySelector('button, .theme-btn')?.focus();
-        }
-        function closeModals() {
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
-            els.cmd.focus();
-        }
-
-        // --- SNOW EFFECT (Simplified for Performance) ---
-        let snowInterval;
-        function toggleSnow(enable) {
-            const canvas = els.snow;
-            if(!enable) {
-                canvas.style.display = 'none';
-                clearInterval(snowInterval);
-                return;
-            }
-            canvas.style.display = 'block';
-            const ctx = canvas.getContext('2d');
-            const W = window.innerWidth, H = window.innerHeight;
-            canvas.width = W; canvas.height = H;
-            const mp = 50; 
-            const particles = [];
-            for(let i=0; i<mp; i++) particles.push({x: Math.random()*W, y: Math.random()*H, r: Math.random()*2+1, d: Math.random()*mp});
-            
-            function draw() {
-                ctx.clearRect(0, 0, W, H);
-                ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-                ctx.beginPath();
-                for(let i=0; i<mp; i++) {
-                    const p = particles[i];
-                    ctx.moveTo(p.x, p.y);
-                    ctx.arc(p.x, p.y, p.r, 0, Math.PI*2, true);
-                }
-                ctx.fill();
-                update();
-            }
-            let angle = 0;
-            function update() {
-                angle += 0.01;
-                for(let i=0; i<mp; i++) {
-                    const p = particles[i];
-                    p.y += Math.cos(angle+p.d) + 1 + p.r/2;
-                    p.x += Math.sin(angle) * 2;
-                    if(p.x > W+5 || p.x < -5 || p.y > H) {
-                        particles[i] = {x: Math.random()*W, y: -10, r: p.r, d: p.d};
-                    }
-                }
-            }
-            snowInterval = setInterval(draw, 33);
-        }
     </script>
 </body>
 </html>
