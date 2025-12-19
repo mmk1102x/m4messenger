@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - M4messenger</title>
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+    <style>
+        body { background: #f2f2f7; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 350px; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 1.2em; box-sizing: border-box; }
+        button { width: 100%; padding: 15px; background: #007aff; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>REGISTER</h2>
+        <input id="u" placeholder="Username">
+        <input id="p" type="password" placeholder="Password">
+        <button onclick="register()">CREATE ACCOUNT</button>
+        <p><a href="/">Back</a></p>
+    </div>
+    <script>
+        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+        const user = gun.user();
+        function register() {
+            const u = document.getElementById('u').value;
+            const p = document.getElementById('p').value;
+            user.create(u, p, (ack) => {
+                if(ack.err) alert(ack.err);
+                else { alert("Success! Now log in."); window.location.href = "/login"; }
+            });
+        }
+    </script>
+</body>
+</html>
