@@ -1,35 +1,68 @@
-# 🛰️ M4messenger
+# M4messenger
 
-**M4messenger** is a professional, decentralized, serverless peer-to-peer (P2P) messaging application. No backend, no central database, just code living in the mesh.
+**M4messenger** is a serverless, decentralized, Peer-to-Peer (P2P) messaging application powered by **Gun.js**. Designed with a "Performance First" philosophy, it runs entirely in the browser without a backend database.
 
----
+> **Status:** Active | **Protocol:** v24 | **Design:** Square/Brutalist
 
-## ✨ Core Features
+## 🚀 Core Features
 
-- **🌐 Serverless Mesh:** Powered by Gun.js. Data lives in the collective browsers of the users.
-- **🆔 Handle System:** Customizable Display Name + Telegram-style `@handle`.
-- **🎨 Chromatic Themes:** 10 diverse visual styles available via the `theme` command.
-- **💾 Local Persistence:** Chat history and settings are saved to your browser cache.
-- **📱 Mobile Optimized:** Fixed drawer sidebar ensures a smooth experience on touch devices.
+- **Decentralized:** No central server. Data lives in the mesh (Gun.js).
+- **No Authentication:** No sign-ups. Identity is generated locally and stored in the browser.
+- **Performance First:** Optimized for legacy hardware. Vanilla JS, no heavy frameworks.
+- **Global Directory:** View all users in the mesh history with **Online/Offline** status indicators.
+- **Dynamic Theming:** 10+ themes with automatic favicon adaptation.
+- **Keyboard Accessible:** Full keyboard navigation support with high-contrast focus states.
 
----
+## ⌨️ Hotkeys & Accessibility
 
-## 🛠️ Command System
+M4messenger is fully usable without a mouse.
 
-Run these in the **RUN** box or browser console (`cmd('command')`).
+| Shortcut | Action |
+| :--- | :--- |
+| `Alt + C` | Focus **Chat Input** |
+| `Alt + M` | Focus **Command Line** |
+| `Alt + R` | Focus **Room List** |
+| `Esc` | Close Modals / Return to Input |
+| `Tab` | Navigate Lists (Rooms/Users) |
+| `Enter` | Select List Item / Send Message |
+
+## 💻 Commands
+
+Type these into the Command Bar (bottom of sidebar) or press `Alt + M`:
 
 | Command | Description |
 | :--- | :--- |
-| `theme` | Open the theme picker. |
-| `soft` | Toggle between square and rounded UI corners. |
-| `snow` | Toggle global falling snow effect. |
-| `clean` | Wipe all local chat history and settings (Factory Reset). |
-| `stats` | View network status and user ID. |
-| `rus / eng / ger / spa / fra` | Switch interface language. |
-| `nick @user Name` | (Local) Rename a peer on your screen. |
+| `name [NewName]` | Change your display name instantly. |
+| `theme` | Open the visual Theme Picker. |
+| `clean` | **Factory Reset** (Wipes data & reloads). |
+| `soft` | Toggle UI Border Radius (0px vs 18px). |
+| `snow` | Toggle the global snowflake animation. |
+| `help` | Show list of commands. |
+| `stats` | Show network connectivity stats. |
+| `nick @u [Name]` | Set a local alias for a peer. |
+| `rus` / `eng` | Switch interface language. |
 
----
+## 🎨 Themes
 
-**Themes:** light, dark, blue, purple, crimson, emerald, midnight, coffee, solarized, amber.
+M4messenger supports universal CSS variables. The **browser tab icon** updates dynamically to match the active theme color.
 
-//all code and read me is written by ai, so don't beleive it too much. there is defently no serverless mesh.
+- **Light / Dark** (Standard)
+- **Coffee** (Latte/Paper) / **Coffee-Dark** (Espresso)
+- **Emerald** (Hacker Green)
+- **Midnight** (Deep Blue OLED)
+- **Crimson, Purple, Blue, Solarized, Amber**
+
+## 🛠 Technical Stack
+
+- **Engine:** [Gun.js](https://gun.eco/) (RAD, SEA).
+- **Storage:** IndexedDB / LocalStorage (Browser).
+- **Frontend:** Pure HTML/CSS/JS (Single File).
+- **Network:** WebRTC + Relay Fallback.
+
+## 📦 Installation
+
+1. Clone the repo.
+2. Open `index.html` in any modern browser.
+3. That's it.
+
+# //all code is written by ai. don't belive it too much.
