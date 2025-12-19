@@ -2,34 +2,125 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Register - M4messenger</title>
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <style>
+        /* --- DYNAMIC THEME ENGINE --- */
         :root { --bg: #f2f2f7; --text: #000; --panel: #fff; --hl: #007aff; --border: #ddd; }
         [data-theme="dark"] { --bg: #000; --text: #0f0; --panel: #111; --hl: #0f0; --border: #333; }
         [data-theme="text"] { --bg: #000; --text: #fff; --panel: #000; --hl: #fff; --border: #fff; }
-        body { background: var(--bg); color: var(--text); font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { background: var(--panel); padding: 50px; border: 2px solid var(--border); text-align: center; width: 450px; border-radius: 20px; }
-        input { width: 100%; padding: 25px; margin: 15px 0; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-size: 1.6em; box-sizing: border-box; border-radius: 12px; }
-        button { width: 100%; padding: 20px; background: var(--hl); color: white; border: none; font-weight: bold; font-size: 1.4em; cursor: pointer; border-radius: 12px; }
+        [data-theme="coffee"] { --bg: #fdf6e3; --text: #5d4037; --panel: #eee8d5; --hl: #8d6e63; --border: #d3af86; }
+        [data-theme="emerald"] { --bg: #06100c; --text: #2ecc71; --panel: #0a1a14; --hl: #2ecc71; --border: #143a2b; }
+        [data-theme="midnight"] { --bg: #00040a; --text: #5080ff; --panel: #000814; --hl: #5080ff; --border: #002244; }
+        [data-theme="purple"] { --bg: #0f0a1e; --text: #bf5af2; --panel: #1a1233; --hl: #bf5af2; --border: #2d1e5e; }
+        [data-theme="crimson"] { --bg: #1a0505; --text: #ff4d4d; --panel: #280a0a; --hl: #ff4d4d; --border: #441111; }
+
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: monospace; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            transition: 0.3s;
+        }
+        
+        .box { 
+            background: var(--panel); 
+            padding: 50px; 
+            border: 2px solid var(--border); 
+            text-align: center; 
+            width: 450px; 
+            max-width: 90%;
+            border-radius: 20px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        h2 { font-weight: 900; letter-spacing: -1px; }
+
+        input { 
+            width: 100%; 
+            padding: 25px; 
+            margin: 15px 0; 
+            border: 2px solid var(--border); 
+            background: var(--bg); 
+            color: var(--text); 
+            font-size: 1.6em; 
+            box-sizing: border-box; 
+            border-radius: 12px; 
+            outline: none;
+            font-family: inherit;
+        }
+        
+        button { 
+            width: 100%; 
+            padding: 20px; 
+            background: var(--hl); 
+            color: white; 
+            border: none; 
+            font-weight: bold; 
+            font-size: 1.4em; 
+            cursor: pointer; 
+            border-radius: 12px; 
+            margin-top: 10px;
+        }
+        [data-theme="dark"] button, [data-theme="text"] button { color: #000; }
+        
+        a { color: var(--text); opacity: 0.6; text-decoration: none; font-size: 1.1em; margin-top: 20px; display: inline-block; }
+        a:hover { opacity: 1; text-decoration: underline; }
     </style>
 </head>
 <body data-theme="light">
     <div class="box">
-        <h2>REGISTER</h2>
+        <h2 id="r-title">REGISTER</h2>
         <input id="u" placeholder="Username">
         <input id="p" type="password" placeholder="Password">
-        <button onclick="register()">CREATE ACCOUNT</button>
-        <p><a href="index.html" style="color:var(--text)">Back</a></p>
+        <button id="r-btn" onclick="register()">CREATE ACCOUNT</button>
+        <p><a href="index.html" id="back-link">Back</a></p>
     </div>
+
     <script>
-        document.body.setAttribute('data-theme', localStorage.getItem('m4_theme') || 'light');
+        // Apply saved theme
+        const savedTheme = localStorage.getItem('m4_theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+
+        // Language Support
+        const lang = localStorage.getItem('m4_lang') || 'en';
+        const trans = {
+            en: { title: "REGISTER", user: "Username", pass: "Password", btn: "CREATE ACCOUNT", back: "Back" },
+            ru: { title: "РЕГИСТРАЦИЯ", user: "Имя пользователя", pass: "Пароль", btn: "СОЗДАТЬ АККАУНТ", back: "Назад" },
+            ger: { title: "REGISTRIEREN", user: "Nutzername", pass: "Passwort", btn: "KONTO ERSTELLEN", back: "Zurück" },
+            spa: { title: "REGISTRO", user: "Usuario", pass: "Contraseña", btn: "CREAR CUENTA", back: "Volver" },
+            fra: { title: "S'INSCRIRE", user: "Nom d'utilisateur", pass: "Mot de passe", btn: "CRÉER UN COMPTE", back: "Retour" }
+        };
+
+        const t = trans[lang] || trans.en;
+        document.getElementById('r-title').innerText = t.title;
+        document.getElementById('u').placeholder = t.user;
+        document.getElementById('p').placeholder = t.pass;
+        document.getElementById('r-btn').innerText = t.btn;
+        document.getElementById('back-link').innerText = t.back;
+
+        // Gun.js Logic
+        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
         function register() {
-            const u = document.getElementById('u').value, p = document.getElementById('p').value;
-            Gun(['https://gun-manhattan.herokuapp.com/gun']).user().create(u, p, (ack) => {
-                if(ack.err) alert(ack.err);
-                else { alert("Success!"); window.location.href = "login.html"; }
+            const u = document.getElementById('u').value.trim();
+            const p = document.getElementById('p').value;
+            
+            if(!u || !p) return alert("Please fill all fields.");
+            if(u.includes(' ') || u.includes('@')) return alert("Username cannot contain spaces or @ symbols.");
+
+            gun.user().create(u, p, (ack) => {
+                if (ack.err) {
+                    alert(ack.err);
+                } else {
+                    alert("Account created successfully!");
+                    window.location.href = "login.html";
+                }
             });
         }
     </script>
