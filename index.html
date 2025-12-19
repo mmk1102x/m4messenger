@@ -10,12 +10,15 @@
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
     <style>
+        /* --- VARIABLES --- */
         :root { 
             --bg: #ffffff; --panel: #f2f2f7; --border: #d1d1d6; --text: #000; --text-dim: #8e8e93; 
             --hl: #007aff; --hl-border: #007aff; --warn: #ff3b30; --input-bg: #fff; 
             --msg-mine: #007aff; --msg-other: #e9e9eb; --mention: #ff9500;
-            --radius: 0px; --border-style: solid;
+            --radius: 0px; /* Square Default */
+            --border-style: solid;
         }
+        /* --- THEMES --- */
         [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-border: #0f0; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; }
         [data-theme="coffee"] { --bg: #fdf6e3; --panel: #eee8d5; --border: #d3af86; --text: #5d4037; --text-dim: #a1887f; --hl: #8d6e63; --hl-border: #8d6e63; --warn: #c62828; --input-bg: #fdf6e3; --msg-mine: #8d6e63; --msg-other: #efebe9; --mention: #bf360c; }
         [data-theme="coffee-dark"] { --bg: #2b2118; --panel: #1f1610; --border: #3e2f24; --text: #dcc8b8; --text-dim: #8d6e63; --hl: #a67c52; --hl-border: #a67c52; --warn: #c62828; --input-bg: #1f1610; --msg-mine: #543d2e; --msg-other: #3e2f24; --mention: #ffccbc; }
@@ -27,10 +30,12 @@
         [data-theme="purple"] { --bg: #0f0a1e; --panel: #1a1233; --border: #2d1e5e; --text: #bf5af2; --text-dim: #5e2d91; --hl: #bf5af2; --hl-border: #2d1e5e; --warn: #ff375f; --input-bg: #0f0a1e; --msg-mine: #5e2d91; --msg-other: #1c1c1e; --mention: #00ffff; }
         [data-theme="crimson"] { --bg: #1a0505; --panel: #280a0a; --border: #441111; --text: #ff4d4d; --text-dim: #882222; --hl: #ff4d4d; --hl-border: #441111; --warn: #ffcc00; --input-bg: #0d0101; --msg-mine: #661111; --msg-other: #110303; --mention: #ffffff; }
 
+        /* --- GLOBAL --- */
         * { box-sizing: border-box; outline: none; border-radius: var(--radius); }
         body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
         *:focus-visible { outline: 2px solid var(--hl); outline-offset: -2px; z-index: 10; }
 
+        /* --- UI COMPONENTS --- */
         #sidebar { width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); display: flex; flex-direction: column; padding: 20px; z-index: 1000; height: 100dvh; transition: transform 0.3s; }
         #logo-container { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 25px; }
         #logo-icon { width: 45px; height: 45px; background: var(--hl) !important; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5em; flex-shrink: 0; transition: background 0.3s; }
@@ -84,7 +89,6 @@
     </style>
 </head>
 <body data-theme="light">
-    <canvas id="snow-canvas"></canvas>
     
     <div id="sidebar">
         <div id="logo-container">
@@ -168,7 +172,23 @@
     </div>
 
     <script>
-        // --- UTILS ---
+        // --- CONFIG & HELPERS ---
+        // Moved to top to prevent ReferenceErrors
+        const themeColors = {
+            'light': '#007aff', 'dark': '#0f0',
+            'coffee': '#8d6e63', 'coffee-dark': '#a67c52',
+            'emerald': '#2ecc71', 'midnight': '#5080ff',
+            'amber': '#ffbf00', 'solarized': '#268bd2',
+            'blue': '#00e5ff', 'purple': '#bf5af2',
+            'crimson': '#ff4d4d'
+        };
+
+        function updateFavicon(theme) {
+            const color = themeColors[theme] || '#007aff';
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${color}"/><text y=".9em" font-size="70" fill="#fff" font-family="monospace" font-weight="bold" x="15">M4</text></svg>`;
+            document.getElementById('dynamic-favicon').href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        }
+
         function normalizePeerUrl(url) {
             url = url.trim();
             if(!url) return '';
@@ -177,7 +197,13 @@
             return url;
         }
 
-        // --- INIT ---
+        function log(msg) {
+            const c = document.getElementById('net-console');
+            if(c) { c.innerHTML += `<div>> ${msg}</div>`; c.scrollTop = c.scrollHeight; }
+            console.log(msg);
+        }
+
+        // --- INIT & NETWORK ---
         const urlParams = new URLSearchParams(window.location.search);
         const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
         const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
@@ -193,17 +219,10 @@
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        function log(msg) {
-            const c = document.getElementById('net-console');
-            if(c) { c.innerHTML += `<div>> ${msg}</div>`; c.scrollTop = c.scrollHeight; }
-            console.log(msg);
-        }
-
+        // Removed dead Heroku relays
         const peers = [
             'https://m4-backend.onrender.com/gun',
             'https://relay.peer.ooo/gun',
-            'https://gun-manhattan.herokuapp.com/gun',
-            'https://gun-us.herokuapp.com/gun',
             'https://plato.design/gun'
         ];
         const allPeers = [...peers, ...savedPeers];
@@ -211,7 +230,6 @@
 
         const gun = Gun({ peers: allPeers, localStorage: true, radisk: true });
 
-        // --- NETWORK UI ---
         const statusEl = document.getElementById('net-status');
         gun.on('hi', (peer) => {
             statusEl.classList.add('connected');
@@ -245,13 +263,13 @@
             }
         }
 
-        // --- STATE ---
+        // --- STATE & USER LOGIC ---
         let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
         let myName = localStorage.getItem('m4_name') || "Guest";
         localStorage.setItem('m4_handle', myHandle);
         let currentTarget = "#GENERAL";
         
-        // --- SYNC ---
+        // Tab Sync
         const bc = new BroadcastChannel('m4_v24_sync');
         bc.onmessage = (ev) => {
             if(ev.data && ev.data.type === 'msg' && ev.data.room === currentTarget) {
@@ -263,7 +281,6 @@
             const i = document.getElementById('message'); if(!i.value) return;
             const lId = Date.now();
             const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
-            
             drawMessage(d, true); 
             bc.postMessage({type:'msg', room: currentTarget, data: d}); 
             gun.get('m4_mesh_v24').get(currentTarget).set(d); 
@@ -308,12 +325,11 @@
             syncRoom(t);
         }
 
-        // --- PRESENCE ---
         function announcePresence() { gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()}); }
         announcePresence(); setInterval(announcePresence, 10000);
 
         gun.get('m4_users_v24').map().on((user, handle) => {
-            if(!user || !user.name) {
+            if(!user || !user.name) { // Garbage collection
                 const dead = document.getElementById('peer-' + handle);
                 if(dead) dead.remove();
                 return;
