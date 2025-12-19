@@ -1,54 +1,57 @@
 # 🛰️ M4messenger
 
-**M4messenger** is a high-performance, decentralized, serverless peer-to-peer (P2P) messaging application. It is designed to be truly private—data lives in the collective browsers of the users, not on a central server.
+**M4messenger** is a decentralized, serverless peer-to-peer (P2P) messaging application built for maximum privacy and cross-device compatibility. By utilizing **Mesh Network** technology, your data lives in the collective browsers of the users—never on a central server.
 
 ---
 
-## ✨ Key Features
+## ✨ Features
 
-- **🌐 Serverless P2P:** Powered by Gun.js. No central database. Every user who opens the site helps host the data.
-- **💾 Local Persistence:** Uses your browser's LocalStorage and IndexedDB to keep chat history alive even when everyone is offline.
-- **🎨 Chromatic Themes:** Switch between `Dark`, `Light`, `Midnight`, `Emerald`, `Amber`, and the unique `Text` (ASCII) theme.
-- **📱 Mobile Optimized:** Dynamic viewport height (100dvh) ensures the chat works perfectly on all mobile browsers.
-- **🤫 Personal Aliases:** Type `nick @user Name` to rename other people locally.
-- **🧼 Privacy First:** The `clean` command performs a full "Factory Reset" by wiping all storage and cookies.
+- **🌐 Serverless Mesh:** Powered by Gun.js. No central database. Data is shared directly between peers.
+- **🆔 Identity v4:** Professional Telegram-style handles. Every user has a **Display Name** and a unique **@username** (customizable, no spaces allowed).
+- **🎨 Universal Themes:** 11 chromatic styles synced across the main chat, login, and registration pages.
+- **💾 Local Persistence:** Chat history is saved to your browser's local cache (LocalStorage/IndexedDB) so it survives page reloads even when offline.
+- **📱 Responsive UI:** Completely fluid design. Buttons and panels adapt to any screen size without fixed constraints.
+- **📟 Console CLI:** Full control via the browser console (`F12`). Run `cmd('command')` on any page.
+
+---
+
+## 🎨 Themes List
+
+Change the look of the entire app using the `theme` command or by typing the name directly into the **RUN** box:
+
+- `light`: Clean office white (Default)
+- `dark`: Classic hacker green
+- `text`: Symbolic ASCII mode (using only `|` and `_`)
+- `emerald`: Deep forest green
+- `amber`: Vintage gold terminal
+- `midnight`: OLED black and vivid blue
+- `coffee`: Soft sepia/brown tones
+- `solarized`: Professional developer palette
+- `blue`: Ocean navy
+- `purple`: Neon cyberpunk
+- `crimson`: Elegant soft red
 
 ---
 
 ## 🛠️ Command System
 
-Run these commands in the **RUN** box at the bottom-left. Use `;` to run multiple at once.
-
 | Command | Description |
 | :--- | :--- |
-| `stats` | Opens a window showing your usage time and mesh network status. |
+| `help` | Opens the command manual. |
 | `theme` | Opens the visual Theme Picker. |
-| `clean` | **Factory Reset:** Wipes all messages, cookies, and local data. |
-| `exp` | Toggle Aesthetic UI (Glassmorphism & Blurs). |
-| `soft` | Toggle rounded corners for a modern look. |
-| `snow` | Toggle falling snowflake animation. |
-| `rus / eng` | Switch interface language. |
-| `nick @user Name` | Set a personal nickname for another user. |
-| `default [cmds]` | (Admin) Set startup commands for all new users. |
+| `clean` | **Cache Wipe:** Deletes all local chat history, identity keys, and cookies. |
+| `soft` | Toggles rounded corners for a modern look (Off by default). |
+| `snow` | Toggles the falling snowflake animation. |
+| `nick @user Name` | Set a personal nickname for another user (Local only). |
+| `rus / eng / ger / spa / fra` | Switch interface language. |
 
 ---
 
-## 🚀 How to Run
+## 🚀 Installation & Usage
 
-Because M4messenger is **Serverless**, you have three ways to use it:
-
-1. **GitHub Pages (Live):** [https://mmk1102x.github.io/m4messenger/](https://mmk1102x.github.io/m4messenger/)
-2. **Instant Local:** Download `index.html` and double-click it. It will work immediately.
-3. **Python Serving:** Run `python3 app.py` to serve the file locally on port 5000.
+1. **GitHub Pages:** Access the live build at [https://mmk1102x.github.io/m4messenger/](https://mmk1102x.github.io/m4messenger/)
+2. **Offline Mode:** Download the repository and open `index.html` in any modern browser.
+3. **Local Hosting:** Run `python3 app.py` to serve the files locally.
 
 ---
-
-## 🛡️ Privacy & Cookies
-
-M4messenger uses **Local Storage** and **Cookies** strictly for decentralized functionality:
-1. To store your cryptographic identity keys.
-2. To cache chat history so the mesh stays alive during low traffic.
-3. To remember your theme and language settings.
-
----
-**Developed for the M4 Community.**
+**Developed for the M4 Community. Private. Decentralized. Secure.**
