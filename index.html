@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
-    <!-- Dynamic Favicon -->
     <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%23007aff%22%2F%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2270%22%20fill%3D%22%23fff%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20x%3D%2215%22%3EM4%3C%2Ftext%3E%3C%2Fsvg%3E">
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
     <style>
         /* --- CORE VARIABLES --- */
         :root { 
@@ -29,17 +29,14 @@
         [data-theme="purple"] { --bg: #0f0a1e; --panel: #1a1233; --border: #2d1e5e; --text: #bf5af2; --text-dim: #5e2d91; --hl: #bf5af2; --hl-border: #2d1e5e; --warn: #ff375f; --input-bg: #0f0a1e; --msg-mine: #5e2d91; --msg-other: #1c1c1e; --mention: #00ffff; }
         [data-theme="crimson"] { --bg: #1a0505; --panel: #280a0a; --border: #441111; --text: #ff4d4d; --text-dim: #882222; --hl: #ff4d4d; --hl-border: #441111; --warn: #ffcc00; --input-bg: #0d0101; --msg-mine: #661111; --msg-other: #110303; --mention: #ffffff; }
 
-        /* --- GLOBAL RESET --- */
+        /* --- GLOBAL RESET & A11Y --- */
         * { box-sizing: border-box; outline: none; border-radius: var(--radius); }
         body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
         *:focus-visible { outline: 2px solid var(--hl); outline-offset: -2px; z-index: 10; }
 
         /* --- LAYOUT --- */
-        #sidebar { 
-            width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); 
-            display: flex; flex-direction: column; padding: 20px; z-index: 1000; height: 100dvh; transition: transform 0.3s;
-        }
-
+        #sidebar { width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); display: flex; flex-direction: column; padding: 20px; z-index: 1000; height: 100dvh; transition: transform 0.3s; }
+        
         #logo-container { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 25px; }
         #logo-icon { width: 45px; height: 45px; background: var(--hl) !important; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5em; flex-shrink: 0; transition: background 0.3s; }
         #logo-text { font-weight: 900; font-size: 1.3em; letter-spacing: -1px; }
@@ -47,11 +44,16 @@
         #identity { text-align: center; margin-bottom: 25px; border-bottom: 1px var(--border-style) var(--border); padding-bottom: 15px; }
         #my-name-display { font-weight: 900; font-size: 1.2em; cursor: pointer; padding: 5px; }
         #my-handle-display { font-size: 0.85em; opacity: 0.6; cursor: pointer; padding: 5px; }
-        #my-name-display:hover, #my-handle-display:hover, #my-name-display:focus, #my-handle-display:focus { background: var(--bg); outline: 1px solid var(--hl); }
+        #my-name-display:hover, #my-handle-display:hover { background: var(--bg); outline: 1px solid var(--hl); }
 
         #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; }
-        #header { height: 60px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; align-items: center; padding: 0 20px; }
+        
+        /* HEADER with Connection Status */
+        #header { height: 60px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
+        #header-left { display: flex; align-items: center; }
         #hamburger { display: none; cursor: pointer; font-size: 1.5em; margin-right: 15px; }
+        #net-status { width: 10px; height: 10px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 5px var(--warn); transition: 0.3s; margin-left: 10px; }
+        #net-status.connected { background: var(--hl); box-shadow: 0 0 8px var(--hl); }
 
         .section-title { color: var(--text-dim); font-size: 0.75em; margin: 15px 0 8px 0; font-weight: 800; text-transform: uppercase; }
         .scroll-list { overflow-y: auto; flex: 1; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; }
@@ -59,7 +61,6 @@
         .list-item:hover, .list-item:focus { background: var(--msg-other); }
         .active-chan { background: var(--hl) !important; color: #fff !important; font-weight: 800; }
         
-        /* Status Dot */
         .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; border: 1px solid var(--text-dim); margin-left: 8px; }
         .online { background: var(--hl); border-color: var(--hl); }
         
@@ -105,7 +106,6 @@
         <div class="section-title"><span id="lbl-rooms">ROOMS</span> <span onclick="openModal('create-room')" style="cursor:pointer; color:var(--hl); float:right;">[+]</span></div>
         <div id="room-list" class="scroll-list"></div>
         <div class="section-title" id="lbl-users">USERS</div>
-        <!-- Removed "Scanning..." text. Just show list. -->
         <div id="user-list" class="scroll-list"></div>
         
         <div id="bottom-panel" style="margin-top: auto;">
@@ -119,8 +119,12 @@
 
     <div id="main">
         <div id="header">
-            <div id="hamburger" onclick="toggleSidebar()">☰</div>
-            <div id="header-text">#GENERAL</div>
+            <div id="header-left">
+                <div id="hamburger" onclick="toggleSidebar()">☰</div>
+                <div id="header-text">#GENERAL</div>
+            </div>
+            <!-- Status Dot: Red (Disconnected) / Green (Connected) -->
+            <div id="net-status" title="Connection Status"></div>
         </div>
         <div id="chat"></div>
         <form id="controls-form" onsubmit="event.preventDefault(); send();">
@@ -165,8 +169,41 @@
     </div>
 
     <script>
-        const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
+        // --- ROBUST NETWORKING CONFIG ---
+        // 1. Explicit Peers for redundancy
+        // 2. STUN Servers for NAT Traversal (WebRTC)
+        const gun = Gun({
+            peers: [
+                'https://gun-manhattan.herokuapp.com/gun',
+                'https://peer.wall.org/gun',
+                'https://gundb-relay-ml.herokuapp.com/gun',
+                'https://gun-us.herokuapp.com/gun',
+                'https://gun-eu.herokuapp.com/gun'
+            ],
+            rtc: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun.sipgate.net:3478' }
+                ]
+            }
+        });
+
+        // Connection Monitor
+        let connectedPeers = 0;
+        const statusEl = document.getElementById('net-status');
         
+        gun.on('hi', (peer) => {
+            connectedPeers++;
+            statusEl.classList.add('connected');
+            statusEl.title = `Connected to Mesh (${connectedPeers} peers)`;
+        });
+        
+        gun.on('bye', (peer) => {
+            connectedPeers = Math.max(0, connectedPeers - 1);
+            if(connectedPeers === 0) statusEl.classList.remove('connected');
+            statusEl.title = `Disconnected (${connectedPeers} peers)`;
+        });
+
         // --- GLOBALS & HOTKEYS ---
         window.cmd = (c) => runCode(c);
         
@@ -237,20 +274,25 @@
             const i = document.getElementById('message'); if(!i.value) return;
             const lId = Date.now();
             const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
+            // Draw immediately (Optimistic UI)
             drawMessage(d, true);
+            // Sync to Mesh
             gun.get('m4_mesh_v24').get(currentTarget).set(d);
             i.value = "";
         }
 
-        gun.get('m4_mesh_v24').get(currentTarget).map().on((d) => {
-            if(!d || document.getElementById('msg-' + (d.localId || d.time))) return;
-            drawMessage(d);
-        });
+        function syncRoom(roomName) {
+            const chat = document.getElementById('chat');
+            chat.innerHTML = "";
+            // Limit to last 50 items for performance
+            gun.get('m4_mesh_v24').get(roomName).map().once((d) => {
+                if(!d || document.getElementById('msg-' + (d.localId || d.time))) return;
+                drawMessage(d);
+            });
+        }
 
-        // --- PEER DIRECTORY (Global) ---
         gun.get('m4_users_v24').map().on((user, handle) => {
             if(!user || !user.name) return;
-            // No time filter = Show everyone who ever joined
             renderPeer(user, handle);
         });
 
@@ -267,14 +309,11 @@
             
             const isOnline = (Date.now() - (user.lastSeen || 0)) < 60000;
             const statusClass = isOnline ? 'status-dot online' : 'status-dot';
-            
-            // Text Content
             let txt = `${user.name} (@${handle})`;
             if(handle === myHandle) txt += " (You)";
             
             el.innerHTML = `<span>${txt}</span><span class="${statusClass}"></span>`;
-            if(!isOnline) el.style.opacity = '0.6';
-            else el.style.opacity = '1';
+            el.style.opacity = isOnline ? '1' : '0.6';
         }
 
         function createRoom() {
@@ -303,7 +342,7 @@
         function switchChannel(t) { 
             currentTarget = t; document.getElementById('header-text').innerText = t; 
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('chat').innerHTML = ""; 
+            syncRoom(t);
         }
 
         // --- COMMANDS ---
@@ -371,6 +410,9 @@
              d.onkeydown = (e) => { if(e.key==='Enter') switchChannel('#'+r); };
              roomList.appendChild(d);
         });
+        
+        // Initial Sync
+        syncRoom('GENERAL');
     </script>
 </body>
 </html>
