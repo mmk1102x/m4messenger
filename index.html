@@ -29,7 +29,7 @@
         [data-theme="purple"] { --bg: #0f0a1e; --panel: #1a1233; --border: #2d1e5e; --text: #bf5af2; --text-dim: #5e2d91; --hl: #bf5af2; --hl-border: #2d1e5e; --warn: #ff375f; --input-bg: #0f0a1e; --msg-mine: #5e2d91; --msg-other: #1c1c1e; --mention: #00ffff; }
         [data-theme="crimson"] { --bg: #1a0505; --panel: #280a0a; --border: #441111; --text: #ff4d4d; --text-dim: #882222; --hl: #ff4d4d; --hl-border: #441111; --warn: #ffcc00; --input-bg: #0d0101; --msg-mine: #661111; --msg-other: #110303; --mention: #ffffff; }
 
-        /* --- GLOBAL RESET & A11Y --- */
+        /* --- GLOBAL RESET --- */
         * { box-sizing: border-box; outline: none; border-radius: var(--radius); }
         body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
         *:focus-visible { outline: 2px solid var(--hl); outline-offset: -2px; z-index: 10; }
@@ -48,12 +48,14 @@
 
         #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; }
         
-        /* HEADER with Connection Status */
         #header { height: 60px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
         #header-left { display: flex; align-items: center; }
         #hamburger { display: none; cursor: pointer; font-size: 1.5em; margin-right: 15px; }
-        #net-status { width: 10px; height: 10px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 5px var(--warn); transition: 0.3s; margin-left: 10px; }
+        
+        /* Connection Status */
+        #net-status { width: 12px; height: 12px; border-radius: 50%; background: var(--warn); box-shadow: 0 0 5px var(--warn); transition: 0.3s; margin-left: 10px; cursor: pointer; }
         #net-status.connected { background: var(--hl); box-shadow: 0 0 8px var(--hl); }
+        #net-status.local { background: #ff9500; } /* Orange for local only/connecting */
 
         .section-title { color: var(--text-dim); font-size: 0.75em; margin: 15px 0 8px 0; font-weight: 800; text-transform: uppercase; }
         .scroll-list { overflow-y: auto; flex: 1; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; }
@@ -123,8 +125,7 @@
                 <div id="hamburger" onclick="toggleSidebar()">☰</div>
                 <div id="header-text">#GENERAL</div>
             </div>
-            <!-- Status Dot: Red (Disconnected) / Green (Connected) -->
-            <div id="net-status" title="Connection Status"></div>
+            <div id="net-status" title="Network Status (Click to manage)" onclick="openModal('network')"></div>
         </div>
         <div id="chat"></div>
         <form id="controls-form" onsubmit="event.preventDefault(); send();">
@@ -134,6 +135,19 @@
     </div>
 
     <!-- MODALS -->
+    <div id="modal-network" class="modal">
+        <div class="modal-box">
+            <h3>MESH NETWORK</h3>
+            <div style="font-size:0.8em; margin-bottom:15px; opacity:0.7;">Red Dot = No public peers reachable.<br>Add a working Relay URL below.</div>
+            <div id="peer-list-display" style="max-height:150px; overflow-y:auto; margin-bottom:10px; border:1px solid var(--border); padding:5px; font-size:0.75em;"></div>
+            <div style="display:flex; gap:5px;">
+                <input id="new-peer-url" placeholder="https://..." style="flex:1;">
+                <button class="btn" style="width:auto;" onclick="addPeer()">ADD</button>
+            </div>
+            <button class="btn" style="margin-top:15px;" onclick="closeModals()">CLOSE</button>
+        </div>
+    </div>
+
     <div id="modal-create-room" class="modal"><div class="modal-box"><h3>NEW ROOM</h3><input id="new-room-name" placeholder="Name"><button class="btn" onclick="createRoom()" style="margin-top:10px;">CREATE</button><button class="btn" style="margin-top:5px;border:none;background:none;color:var(--text-dim);" onclick="closeModals()">CANCEL</button></div></div>
     
     <div id="modal-help" class="modal">
@@ -169,17 +183,21 @@
     </div>
 
     <script>
-        // --- ROBUST NETWORKING CONFIG ---
-        // 1. Explicit Peers for redundancy
-        // 2. STUN Servers for NAT Traversal (WebRTC)
+        // --- NETWORKING ---
+        const defaultPeers = [
+            'https://gun-manhattan.herokuapp.com/gun',
+            'https://gun.heron.ninja/gun',
+            'https://plato.design/gun',
+            'https://peer.wall.org/gun',
+            'https://gun-us.herokuapp.com/gun'
+        ];
+        
+        // Load custom peers from storage
+        let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
+        const allPeers = [...defaultPeers, ...savedPeers];
+
         const gun = Gun({
-            peers: [
-                'https://gun-manhattan.herokuapp.com/gun',
-                'https://peer.wall.org/gun',
-                'https://gundb-relay-ml.herokuapp.com/gun',
-                'https://gun-us.herokuapp.com/gun',
-                'https://gun-eu.herokuapp.com/gun'
-            ],
+            peers: allPeers,
             rtc: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
@@ -195,14 +213,36 @@
         gun.on('hi', (peer) => {
             connectedPeers++;
             statusEl.classList.add('connected');
-            statusEl.title = `Connected to Mesh (${connectedPeers} peers)`;
+            statusEl.title = `Connected (${connectedPeers} peers)`;
+            updatePeerDisplay();
         });
         
         gun.on('bye', (peer) => {
             connectedPeers = Math.max(0, connectedPeers - 1);
             if(connectedPeers === 0) statusEl.classList.remove('connected');
-            statusEl.title = `Disconnected (${connectedPeers} peers)`;
+            statusEl.title = `Disconnected`;
+            updatePeerDisplay();
         });
+
+        function updatePeerDisplay() {
+            const d = document.getElementById('peer-list-display');
+            if(d) {
+                // Showing configured peers (checking their actual status is hard in Gun API, assume list)
+                d.innerHTML = `<strong>Configured Relays:</strong><br>` + allPeers.map(p => `&bull; ${p.split('//')[1].split('/')[0]}`).join('<br>');
+            }
+        }
+
+        function addPeer() {
+            const url = document.getElementById('new-peer-url').value.trim();
+            if(url && url.startsWith('http')) {
+                savedPeers.push(url);
+                localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
+                gun.opt({ peers: [url] }); // Hot-add
+                document.getElementById('new-peer-url').value = '';
+                alert("Peer added! Check status dot.");
+                location.reload(); // Reload to force full reconnect
+            }
+        }
 
         // --- GLOBALS & HOTKEYS ---
         window.cmd = (c) => runCode(c);
@@ -216,7 +256,11 @@
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); document.getElementById('code-in').focus(); }
-        function openModal(id) { closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; }
+        function openModal(id) { 
+            closeModals(); 
+            document.getElementById('modal-'+id).style.display = 'flex'; 
+            if(id === 'network') updatePeerDisplay();
+        }
 
         // --- IDENTITY & STATE ---
         let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
@@ -274,9 +318,7 @@
             const i = document.getElementById('message'); if(!i.value) return;
             const lId = Date.now();
             const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
-            // Draw immediately (Optimistic UI)
             drawMessage(d, true);
-            // Sync to Mesh
             gun.get('m4_mesh_v24').get(currentTarget).set(d);
             i.value = "";
         }
@@ -284,7 +326,6 @@
         function syncRoom(roomName) {
             const chat = document.getElementById('chat');
             chat.innerHTML = "";
-            // Limit to last 50 items for performance
             gun.get('m4_mesh_v24').get(roomName).map().once((d) => {
                 if(!d || document.getElementById('msg-' + (d.localId || d.time))) return;
                 drawMessage(d);
