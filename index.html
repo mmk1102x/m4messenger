@@ -5,19 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
     <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%23007aff%22%2F%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2270%22%20fill%3D%22%23fff%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20x%3D%2215%22%3EM4%3C%2Ftext%3E%3C%2Fsvg%3E">
+    <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- Gun.js Engine -->
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
     <style>
-        /* --- VARIABLES --- */
+        /* --- CORE VARIABLES --- */
         :root { 
             --bg: #ffffff; --panel: #f2f2f7; --border: #d1d1d6; --text: #000; --text-dim: #8e8e93; 
             --hl: #007aff; --hl-border: #007aff; --warn: #ff3b30; --input-bg: #fff; 
             --msg-mine: #007aff; --msg-other: #e9e9eb; --mention: #ff9500;
-            --radius: 0px; /* Square Default */
-            --border-style: solid;
+            --radius: 0px; --border-style: solid;
         }
+
         /* --- THEMES --- */
         [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-border: #0f0; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; }
         [data-theme="coffee"] { --bg: #fdf6e3; --panel: #eee8d5; --border: #d3af86; --text: #5d4037; --text-dim: #a1887f; --hl: #8d6e63; --hl-border: #8d6e63; --warn: #c62828; --input-bg: #fdf6e3; --msg-mine: #8d6e63; --msg-other: #efebe9; --mention: #bf360c; }
@@ -173,7 +175,6 @@
 
     <script>
         // --- CONFIG & HELPERS ---
-        // Moved to top to prevent ReferenceErrors
         const themeColors = {
             'light': '#007aff', 'dark': '#0f0',
             'coffee': '#8d6e63', 'coffee-dark': '#a67c52',
@@ -404,11 +405,9 @@
             let n = i.value.trim().replace(/\s/g, ''); if(!n) n = (type==='name'?'Guest':'user');
             
             if(type === 'handle' && myHandle !== n) {
-                // DELETE OLD IDENTITY
-                gun.get('m4_users_v24').get(myHandle).put(null);
+                gun.get('m4_users_v24').get(myHandle).put(null); // Del Old
                 const oldEl = document.getElementById('peer-' + myHandle);
                 if(oldEl) oldEl.remove();
-                
                 myHandle = n; localStorage.setItem('m4_handle', n); 
             } else if(type === 'name') {
                 myName = n; localStorage.setItem('m4_name', n); 
@@ -420,6 +419,18 @@
         }
 
         // --- COMMANDS ---
+        window.cmd = (c) => runCode(c); 
+
+        // Translations for HELP
+        const trans = {
+            en: {
+                help: `COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\njoin [Room]: Join/Create room\nconnect [url]: Add relay\nrelay list: Show status\nstats: Network stats\nrus/eng: Language`
+            },
+            ru: {
+                help: `КОМАНДЫ:\n\nsoft: Углы (вкл/выкл)\nsnow: Снег (вкл/выкл)\nclean: Сброс данных\ntheme: Темы\nname [Имя]: Сменить имя\njoin [Комната]: Войти/Создать\nconnect [url]: Добавить реле\nrelay list: Статус сети\nstats: Статистика\nrus/eng: Язык`
+            }
+        };
+
         function runCode(manual = null) {
             const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
             const themes = ['light','dark','blue','purple','crimson','emerald','midnight','coffee','coffee-dark','solarized','amber'];
@@ -429,9 +440,25 @@
             else if(c.startsWith('connect ')) {
                 let url = c.split(' ')[1]; if(url) { savedPeers.push(normalizePeerUrl(url)); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); gun.opt({ peers: [normalizePeerUrl(url)] }); }
             }
-            else if(c === 'relay list') openModal('network');
+            else if(c.startsWith('join ')) { 
+                let room = c.split(' ')[1].toUpperCase().replace('#','');
+                if(!customRooms.includes(room)) { customRooms.push(room); localStorage.setItem('m4_rooms', JSON.stringify(customRooms)); renderRooms(); }
+                switchChannel('#'+room);
+            }
+            else if(c.startsWith('name ')) { 
+                finishRename('name'); 
+                myName = c.split(' ').slice(1).join(' '); localStorage.setItem('m4_name', myName);
+                document.getElementById('my-name-display').innerText = myName; announcePresence();
+            }
+            else if(c === 'relay list' || c === 'stats') openModal('network');
             else if(c === 'clean') { localStorage.clear(); location.reload(); }
-            else if(c === 'help') { document.getElementById('help-list').innerText = "Commands: theme [name], connect [url], clean, help"; openModal('help'); }
+            else if(c === 'help') { 
+                document.getElementById('help-list').innerText = (trans[currentLang] || trans.en).help; 
+                openModal('help'); 
+            }
+            else if(c === 'rus' || c === 'eng') { currentLang = c === 'rus' ? 'ru' : 'en'; localStorage.setItem('m4_lang', currentLang); }
+            else if(c === 'soft') { const cur = localStorage.getItem('m4_soft')==='true'; applySoft(!cur?'true':'false'); localStorage.setItem('m4_soft', !cur?'true':'false'); }
+            else if(c === 'snow') { const cur = localStorage.getItem('m4_snow')==='true'; applySnow(!cur?'true':'false'); localStorage.setItem('m4_snow', !cur?'true':'false'); }
             else if(c === 'theme') {
                 const g = document.getElementById('theme-grid'); g.innerHTML='';
                 themes.forEach(t => { 
@@ -440,18 +467,41 @@
                 });
                 openModal('themes');
             }
-            document.getElementById('cmd-feedback').innerText = "OK"; setTimeout(()=>document.getElementById('cmd-feedback').innerText="", 2000); i.value = "";
+            if(i) i.value = "";
+            const fb = document.getElementById('cmd-feedback');
+            if(fb) { fb.innerText = "OK"; setTimeout(()=>fb.innerText="", 2000); }
         }
 
-        // --- STARTUP ---
+        function applySoft(v) { document.documentElement.style.setProperty('--radius', v === 'true' ? '18px' : '0px'); }
+        let sInt = null; 
+        function applySnow(v) { 
+            const c = document.getElementById('snow-canvas'); 
+            if (v === 'true') { c.style.display = 'block'; if (!sInt) startSnow(); } 
+            else { c.style.display = 'none'; clearInterval(sInt); sInt = null; } 
+        }
+        function startSnow() {
+            const c = document.getElementById('snow-canvas'); const ctx = c.getContext('2d');
+            let w = c.width = window.innerWidth, h = c.height = window.innerHeight, fs = [];
+            for(let i=0; i<80; i++) fs.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*3+1, d: Math.random()*0.5+0.5});
+            function draw() { ctx.clearRect(0,0,w,h); ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.beginPath(); for(let f of fs){ ctx.moveTo(f.x,f.y); ctx.arc(f.x,f.y,f.r, 0, Math.PI*2,true); } ctx.fill(); move(); }
+            function move() { for(let f of fs){ f.y += f.d; if(f.y>h){ f.x=Math.random()*w; f.y=-10; } } }
+            sInt = setInterval(draw, 33);
+        }
+
+        // --- BOOT ---
         const savedTheme = localStorage.getItem('m4_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
         updateFavicon(savedTheme); 
         document.getElementById('my-name-display').innerText = myName;
         document.getElementById('my-handle-display').innerText = '@' + myHandle;
         
+        applySoft(localStorage.getItem('m4_soft')); 
+        applySnow(localStorage.getItem('m4_snow'));
+        
         renderRooms();
         syncRoom('GENERAL');
+
+        if(urlCmd) setTimeout(() => runCode(urlCmd), 500); 
     </script>
 </body>
 </html>
