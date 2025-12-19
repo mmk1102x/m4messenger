@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
+    <!-- Default Icon (Will be replaced by JS immediately) -->
+    <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23007aff%22/><text y=%22.9em%22 font-size=%2270%22 fill=%22%23fff%22 font-family=%22monospace%22 font-weight=%22bold%22 x=%2215%22>M4</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <style>
@@ -18,10 +20,10 @@
         /* --- THEMES --- */
         [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-border: #0f0; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; }
         
-        /* Coffee (Light/Reference) */
+        /* Coffee (Light/Latte) */
         [data-theme="coffee"] { --bg: #fdf6e3; --panel: #eee8d5; --border: #d3af86; --text: #5d4037; --text-dim: #a1887f; --hl: #8d6e63; --hl-border: #8d6e63; --warn: #c62828; --input-bg: #fdf6e3; --msg-mine: #8d6e63; --msg-other: #efebe9; --mention: #bf360c; }
         
-        /* Coffee-Dark (New Split) */
+        /* Coffee-Dark (Espresso) */
         [data-theme="coffee-dark"] { --bg: #2b2118; --panel: #1f1610; --border: #3e2f24; --text: #dcc8b8; --text-dim: #8d6e63; --hl: #a67c52; --hl-border: #a67c52; --warn: #c62828; --input-bg: #1f1610; --msg-mine: #543d2e; --msg-other: #3e2f24; --mention: #ffccbc; }
 
         [data-theme="emerald"] { --bg: #06100c; --panel: #0a1a14; --border: #143a2b; --text: #2ecc71; --text-dim: #1d6e41; --hl: #2ecc71; --hl-border: #2ecc71; --warn: #ff4d4d; --input-bg: #06100c; --msg-mine: #1d6e41; --msg-other: #122b21; --mention: #fff; }
@@ -193,6 +195,22 @@
             ru: { send: "ОТПРАВИТЬ", rooms: "КОМНАТЫ", users: "ЛЮДИ", help: "soft: углы\nsnow: снег\nclean: очистка кэша\ntheme: темы\nnick @user Имя\n\nТемы: light, dark, coffee..." }
         };
 
+        // --- FAVICON LOGIC ---
+        const themeColors = {
+            'light': '#007aff', 'dark': '#0f0',
+            'coffee': '#8d6e63', 'coffee-dark': '#a67c52',
+            'emerald': '#2ecc71', 'midnight': '#5080ff',
+            'amber': '#ffbf00', 'solarized': '#268bd2',
+            'blue': '#00e5ff', 'purple': '#bf5af2',
+            'crimson': '#ff4d4d'
+        };
+
+        function updateFavicon(theme) {
+            const color = themeColors[theme] || '#007aff';
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${encodeURIComponent(color)}"/><text y=".9em" font-size="70" fill="#fff" font-family="monospace" font-weight="bold" x="15">M4</text></svg>`;
+            document.getElementById('dynamic-favicon').href = 'data:image/svg+xml,' + svg;
+        }
+
         // --- RENAME LOGIC ---
         function startRenaming(type) { 
             const el = document.getElementById(type === 'name' ? 'my-name-display' : 'my-handle-display');
@@ -236,7 +254,7 @@
             renderPeer(user.name, handle);
         });
 
-        // --- RENDERERS (With A11Y) ---
+        // --- RENDERERS ---
         function renderPeer(name, handle) {
             const list = document.getElementById('user-list');
             let el = document.getElementById('peer-' + handle);
@@ -285,7 +303,9 @@
             const themes = ['light','dark','blue','purple','crimson','emerald','midnight','coffee','coffee-dark','solarized','amber'];
             
             if(themes.includes(c)) { 
-                document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); 
+                document.body.setAttribute('data-theme', c); 
+                localStorage.setItem('m4_theme', c);
+                updateFavicon(c); // Update Icon
                 if(c === 'light') document.body.removeAttribute('data-theme');
             }
             else if(c === 'soft') { const cur = localStorage.getItem('m4_soft')==='true'; applySoft(!cur?'true':'false'); localStorage.setItem('m4_soft', !cur?'true':'false'); }
@@ -293,7 +313,6 @@
             else if(c === 'clean') { localStorage.clear(); location.reload(); }
             else if(c === 'help') { document.getElementById('help-list').innerText = (trans[currentLang] || trans.en).help; openModal('help'); }
             else if(c === 'theme') openModal('themes');
-            else if(c.startsWith('name ')) { /* Legacy command support, though UI is better now */ }
             else if(['rus','eng','ger','fra','spa'].includes(c)) { setLanguage(c === 'rus' ? 'ru' : c); }
             
             const fb = document.getElementById('cmd-feedback'); fb.innerText = "OK: " + c; fb.style.opacity = 1; setTimeout(() => fb.style.opacity = 0, 3000); i.value = "";
@@ -323,9 +342,12 @@
         }
 
         // --- BOOT ---
+        const savedTheme = localStorage.getItem('m4_theme') || 'light';
+        document.body.setAttribute('data-theme', savedTheme);
+        updateFavicon(savedTheme); // Init Favicon
+        
         document.getElementById('my-name-display').innerText = myName;
         document.getElementById('my-handle-display').innerText = '@' + myHandle;
-        document.body.setAttribute('data-theme', localStorage.getItem('m4_theme') || 'light');
         applySoft(localStorage.getItem('m4_soft')); 
         applySnow(localStorage.getItem('m4_snow'));
         setLanguage(localStorage.getItem('m4_lang') || 'en');
