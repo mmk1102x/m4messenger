@@ -5,21 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
     <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%23007aff%22%2F%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2270%22%20fill%3D%22%23fff%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20x%3D%2215%22%3EM4%3C%2Ftext%3E%3C%2Fsvg%3E">
-    <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    <!-- Gun.js Engine -->
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
     <style>
-        /* --- CORE VARIABLES --- */
+        /* --- VARIABLES --- */
         :root { 
             --bg: #ffffff; --panel: #f2f2f7; --border: #d1d1d6; --text: #000; --text-dim: #8e8e93; 
             --hl: #007aff; --hl-border: #007aff; --warn: #ff3b30; --input-bg: #fff; 
             --msg-mine: #007aff; --msg-other: #e9e9eb; --mention: #ff9500;
-            --radius: 0px; --border-style: solid;
+            --radius: 0px; 
+            --border-style: solid;
         }
-
         /* --- THEMES --- */
         [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-border: #0f0; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; }
         [data-theme="coffee"] { --bg: #fdf6e3; --panel: #eee8d5; --border: #d3af86; --text: #5d4037; --text-dim: #a1887f; --hl: #8d6e63; --hl-border: #8d6e63; --warn: #c62828; --input-bg: #fdf6e3; --msg-mine: #8d6e63; --msg-other: #efebe9; --mention: #bf360c; }
@@ -178,7 +176,7 @@
     </div>
 
     <script>
-        // --- GLOBAL CONFIG ---
+        // --- CONFIG & HELPERS ---
         const themeColors = {
             'light': '#007aff', 'dark': '#0f0',
             'coffee': '#8d6e63', 'coffee-dark': '#a67c52',
@@ -188,12 +186,22 @@
             'crimson': '#ff4d4d'
         };
 
+        // Complete Dictionary including UI Labels
         const trans = {
-            en: { help: "COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\njoin [Room]: Join/Create room\nconnect [url]: Add relay\nrelay list: Show status\nstats: Network stats\nrus/eng: Language" },
-            ru: { help: "КОМАНДЫ:\n\nsoft: Углы (вкл/выкл)\nsnow: Снег (вкл/выкл)\nclean: Сброс данных\ntheme: Темы\nname [Имя]: Сменить имя\njoin [Комната]: Войти/Создать\nconnect [url]: Добавить реле\nrelay list: Статус сети\nstats: Статистика\nrus/eng: Язык" }
+            en: { 
+                help: "COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\njoin [Room]: Join/Create room\nconnect [url]: Add relay\nrelay list: Show status\nstats: Network stats\nrus/eng: Language",
+                rooms: "ROOMS",
+                users_lbl: "USERS",
+                send: "SEND"
+            },
+            ru: { 
+                help: "КОМАНДЫ:\n\nsoft: Углы (вкл/выкл)\nsnow: Снег (вкл/выкл)\nclean: Сброс данных\ntheme: Темы\nname [Имя]: Сменить имя\njoin [Комната]: Войти/Создать\nconnect [url]: Добавить реле\nrelay list: Статус сети\nstats: Статистика\nrus/eng: Язык",
+                rooms: "КОМНАТЫ",
+                users_lbl: "ЛЮДИ",
+                send: "ОТПРАВИТЬ"
+            }
         };
 
-        // --- CORE FUNCTIONS ---
         function updateFavicon(theme) {
             const color = themeColors[theme] || '#007aff';
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${color}"/><text y=".9em" font-size="70" fill="#fff" font-family="monospace" font-weight="bold" x="15">M4</text></svg>`;
@@ -240,13 +248,28 @@
             sInt = setInterval(draw, 33);
         }
 
+        // --- LANGUAGE HANDLER ---
+        function setLanguage(lang) {
+            const t = trans[lang] || trans.en;
+            // Persist
+            localStorage.setItem('m4_lang', lang);
+            
+            // Update UI Labels
+            const lblRooms = document.getElementById('lbl-rooms');
+            const lblUsers = document.getElementById('lbl-users');
+            const btnSend = document.getElementById('send-btn');
+            
+            if(lblRooms) lblRooms.innerText = t.rooms;
+            if(lblUsers) lblUsers.innerText = t.users_lbl;
+            if(btnSend) btnSend.innerText = t.send;
+        }
+
         // --- INIT & PARAMS ---
         const urlParams = new URLSearchParams(window.location.search);
         const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
         const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
         const urlCmd = urlParams.get('cmd');
         
-        // 1. Peer Setup
         let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
         if (urlRelay) {
             const cleanUrl = normalizePeerUrl(urlRelay);
@@ -267,7 +290,7 @@
 
         const gun = Gun({ peers: allPeers, localStorage: true, radisk: true });
 
-        // 2. Clear URL if params existed
+        // Clean URL if params existed
         if (urlRelay || urlCmd) {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
@@ -483,10 +506,14 @@
             else if(c === 'relay list' || c === 'stats') openModal('network');
             else if(c === 'clean') { localStorage.clear(); location.reload(); }
             else if(c === 'help') { 
+                // Set text first
                 document.getElementById('help-list').innerText = (trans[currentLang] || trans.en).help; 
                 openModal('help'); 
             }
-            else if(c === 'rus' || c === 'eng') { currentLang = c === 'rus' ? 'ru' : 'en'; localStorage.setItem('m4_lang', currentLang); }
+            else if(c === 'rus' || c === 'eng') { 
+                currentLang = c === 'rus' ? 'ru' : 'en'; 
+                setLanguage(currentLang); // ACTUALLY APPLY IT
+            }
             else if(c === 'soft') { 
                 const cur = localStorage.getItem('m4_soft') === 'true'; 
                 const next = !cur; 
@@ -521,6 +548,7 @@
         
         applySoft(localStorage.getItem('m4_soft') === 'true');
         applySnow(localStorage.getItem('m4_snow') === 'true');
+        setLanguage(localStorage.getItem('m4_lang') || 'en');
         
         renderRooms();
         syncRoom('GENERAL');
