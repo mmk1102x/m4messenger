@@ -5,22 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
     <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%23007aff%22%2F%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2270%22%20fill%3D%22%23fff%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20x%3D%2215%22%3EM4%3C%2Ftext%3E%3C%2Fsvg%3E">
-    <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    <!-- Gun.js Engine -->
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
     <style>
-        /* --- CORE VARIABLES --- */
         :root { 
             --bg: #ffffff; --panel: #f2f2f7; --border: #d1d1d6; --text: #000; --text-dim: #8e8e93; 
             --hl: #007aff; --hl-border: #007aff; --warn: #ff3b30; --input-bg: #fff; 
             --msg-mine: #007aff; --msg-other: #e9e9eb; --mention: #ff9500;
             --radius: 0px; --border-style: solid;
         }
-
-        /* --- THEMES --- */
         [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-border: #0f0; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; }
         [data-theme="coffee"] { --bg: #fdf6e3; --panel: #eee8d5; --border: #d3af86; --text: #5d4037; --text-dim: #a1887f; --hl: #8d6e63; --hl-border: #8d6e63; --warn: #c62828; --input-bg: #fdf6e3; --msg-mine: #8d6e63; --msg-other: #efebe9; --mention: #bf360c; }
         [data-theme="coffee-dark"] { --bg: #2b2118; --panel: #1f1610; --border: #3e2f24; --text: #dcc8b8; --text-dim: #8d6e63; --hl: #a67c52; --hl-border: #a67c52; --warn: #c62828; --input-bg: #1f1610; --msg-mine: #543d2e; --msg-other: #3e2f24; --mention: #ffccbc; }
@@ -32,14 +27,11 @@
         [data-theme="purple"] { --bg: #0f0a1e; --panel: #1a1233; --border: #2d1e5e; --text: #bf5af2; --text-dim: #5e2d91; --hl: #bf5af2; --hl-border: #2d1e5e; --warn: #ff375f; --input-bg: #0f0a1e; --msg-mine: #5e2d91; --msg-other: #1c1c1e; --mention: #00ffff; }
         [data-theme="crimson"] { --bg: #1a0505; --panel: #280a0a; --border: #441111; --text: #ff4d4d; --text-dim: #882222; --hl: #ff4d4d; --hl-border: #441111; --warn: #ffcc00; --input-bg: #0d0101; --msg-mine: #661111; --msg-other: #110303; --mention: #ffffff; }
 
-        /* --- GLOBAL RESET --- */
         * { box-sizing: border-box; outline: none; border-radius: var(--radius); }
         body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
         *:focus-visible { outline: 2px solid var(--hl); outline-offset: -2px; z-index: 10; }
 
-        /* --- LAYOUT --- */
         #sidebar { width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); display: flex; flex-direction: column; padding: 20px; z-index: 1000; height: 100dvh; transition: transform 0.3s; }
-        
         #logo-container { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 25px; }
         #logo-icon { width: 45px; height: 45px; background: var(--hl) !important; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5em; flex-shrink: 0; transition: background 0.3s; }
         #logo-text { font-weight: 900; font-size: 1.3em; letter-spacing: -1px; }
@@ -50,12 +42,10 @@
         #my-name-display:hover, #my-handle-display:hover { background: var(--bg); outline: 1px solid var(--hl); }
 
         #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; }
-        
         #header { height: 60px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
         #header-left { display: flex; align-items: center; }
         #hamburger { display: none; cursor: pointer; font-size: 1.5em; margin-right: 15px; }
         
-        /* Connection Status */
         #net-status { width: 12px; height: 12px; border-radius: 50%; background: #ff9500; box-shadow: 0 0 5px #ff9500; transition: 0.3s; margin-left: 10px; cursor: pointer; }
         #net-status.connected { background: var(--hl) !important; box-shadow: 0 0 8px var(--hl) !important; }
         
@@ -86,8 +76,6 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(0,0,0,0.7); z-index: 99999; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .modal-box { background: var(--bg); border: 4px var(--border-style) var(--hl-border); padding: 30px; width: 450px; max-width: 90%; color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
 
-        #snow-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999; display: none; }
-
         @media (max-width: 768px) {
             #sidebar { position: fixed; transform: translateX(-100%); width: 280px; }
             #sidebar.open { transform: translateX(0); }
@@ -96,7 +84,6 @@
     </style>
 </head>
 <body data-theme="light">
-    <canvas id="snow-canvas"></canvas>
     
     <div id="sidebar">
         <div id="logo-container">
@@ -143,18 +130,12 @@
         <div class="modal-box">
             <h3>NETWORK</h3>
             <div id="net-console"></div>
-            
-            <div style="font-size:0.8em; margin:10px 0;">
-                <strong>Connect via IP/URL:</strong>
-            </div>
+            <div style="font-size:0.8em; margin:10px 0;"><strong>Connect via IP/URL:</strong></div>
             <div style="display:flex; gap:5px; margin-bottom:15px;">
                 <input id="new-peer-url" placeholder="wss://... or IP:PORT" style="flex:1;">
                 <button class="btn" style="width:auto;" onclick="addPeer()">CONNECT</button>
             </div>
-
             <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
-            
-            <!-- QR & Share Section -->
             <div style="font-size:0.8em; margin-bottom:5px;"><strong>Share Connection (QR/Hash):</strong></div>
             <div style="display:flex; justify-content:center; margin:10px 0; background:#fff; padding:10px; border-radius:4px;">
                 <canvas id="qr-code" style="width:150px; height:150px;"></canvas>
@@ -163,7 +144,6 @@
                 <button class="btn" style="font-size:0.8em; padding:5px 10px;" onclick="copyHashLink()">COPY HASH LINK</button>
                 <div id="share-feedback" style="font-size:0.7em; margin-top:5px; height:1.2em;"></div>
             </div>
-
             <button class="btn" style="margin-top:15px;" onclick="closeModals()">CLOSE</button>
         </div>
     </div>
@@ -174,11 +154,6 @@
         <div class="modal-box">
             <h3>HELP</h3>
             <div id="help-list" style="white-space:pre-line;font-size:0.85em;line-height:1.6em;margin-bottom:15px;"></div>
-            <h4>Hotkeys</h4>
-            <div style="font-size:0.8em; margin-bottom:10px;">
-                Alt+C: Focus Chat | Alt+M: Command<br>
-                Alt+R: Rooms | Esc: Close
-            </div>
             <button class="btn" onclick="closeModals()">CLOSE</button>
         </div>
     </div>
@@ -186,43 +161,29 @@
     <div id="modal-themes" class="modal">
         <div class="modal-box">
             <h3>THEMES</h3>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height: 50vh; overflow-y:auto;">
-                <button class="btn" onclick="runCode('light');closeModals()">LIGHT</button>
-                <button class="btn" onclick="runCode('dark');closeModals()" style="background:#000; color:#0f0;">DARK</button>
-                <button class="btn" onclick="runCode('coffee');closeModals()" style="background:#fdf6e3; color:#5d4037;">COFFEE (Light)</button>
-                <button class="btn" onclick="runCode('coffee-dark');closeModals()" style="background:#1f1610; color:#dcc8b8;">COFFEE (Dark)</button>
-                <button class="btn" onclick="runCode('emerald');closeModals()" style="background:#0a1a14; color:#2ecc71;">EMERALD</button>
-                <button class="btn" onclick="runCode('midnight');closeModals()" style="background:#000814; color:#5080ff;">MIDNIGHT</button>
-                <button class="btn" onclick="runCode('solarized');closeModals()" style="background:#002b36; color:#839496;">SOLARIZED</button>
-                <button class="btn" onclick="runCode('blue');closeModals()" style="background:#001f3f; color:#00e5ff;">BLUE</button>
-                <button class="btn" onclick="runCode('purple');closeModals()" style="background:#0f0a1e; color:#bf5af2;">PURPLE</button>
-                <button class="btn" onclick="runCode('crimson');closeModals()" style="background:#1a0505; color:#ff4d4d;">CRIMSON</button>
-            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; max-height: 50vh; overflow-y:auto;" id="theme-grid"></div>
             <button class="btn" style="margin-top:15px;" onclick="closeModals()">CLOSE</button>
         </div>
     </div>
 
+    <link rel="icon" id="dynamic-favicon" href="">
+
     <script>
-        // --- HELPER: NORMALIZE URL ---
+        // --- UTILS ---
         function normalizePeerUrl(url) {
             url = url.trim();
             if(!url) return '';
-            if(!url.startsWith('http') && !url.startsWith('ws')) {
-                url = 'https://' + url; // Default to https for render/web
-            }
-            if(!url.endsWith('/gun')) {
-                url = url.replace(/\/$/, '') + '/gun';
-            }
+            if(!url.startsWith('http') && !url.startsWith('ws')) url = 'https://' + url;
+            if(!url.endsWith('/gun')) url = url.replace(/\/$/, '') + '/gun';
             return url;
         }
 
-        // --- URL PARAMS HANDLER ---
+        // --- INIT & PEERS ---
         const urlParams = new URLSearchParams(window.location.search);
         const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
         const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
         
         let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
-
         if (urlRelay) {
             const cleanUrl = normalizePeerUrl(urlRelay);
             if (!savedPeers.includes(cleanUrl)) {
@@ -233,80 +194,45 @@
             window.history.replaceState({}, document.title, window.location.pathname);
         }
 
-        // --- LOGGING ---
         function log(msg) {
             const c = document.getElementById('net-console');
-            if(c) {
-                c.innerHTML += `<div>> ${msg}</div>`;
-                c.scrollTop = c.scrollHeight;
-            }
+            if(c) { c.innerHTML += `<div>> ${msg}</div>`; c.scrollTop = c.scrollHeight; }
             console.log(msg);
         }
 
-        // --- PEERS ---
-        // New Render backend at TOP PRIORITY
         const peers = [
-            'https://m4-backend.onrender.com/gun', 
+            'https://m4-backend.onrender.com/gun',
             'https://relay.peer.ooo/gun',
             'https://gun-manhattan.herokuapp.com/gun',
             'https://gun-us.herokuapp.com/gun',
             'https://plato.design/gun'
         ];
-        
         const allPeers = [...peers, ...savedPeers];
+        log(`Init Gun with ${allPeers.length} peers...`);
 
-        log(`Initializing Gun with ${allPeers.length} candidates...`);
+        const gun = Gun({ peers: allPeers, localStorage: true, radisk: true });
 
-        const gun = Gun({
-            peers: allPeers,
-            localStorage: true,
-            radisk: true
+        // --- NETWORK UI ---
+        const statusEl = document.getElementById('net-status');
+        gun.on('hi', (peer) => {
+            statusEl.classList.add('connected');
+            statusEl.title = `Connected: ${peer.url}`;
+            log(`CONNECTED: ${peer.url || 'Peer'}`);
+            if(peer.url) updateQR(peer.url);
         });
+        gun.on('bye', (peer) => { log(`DISCONNECTED: ${peer.url}`); });
 
-        // --- QR & HASH SHARING ---
         function updateQR(url) {
-            const qr = new QRious({
-                element: document.getElementById('qr-code'),
-                value: window.location.origin + window.location.pathname + '#c=' + btoa(url),
-                size: 150
-            });
+            new QRious({ element: document.getElementById('qr-code'), value: window.location.origin + window.location.pathname + '#c=' + btoa(url), size: 150 });
         }
-
         function copyHashLink() {
             const activeUrl = savedPeers.length > 0 ? savedPeers[savedPeers.length-1] : peers[0];
-            const hash = btoa(activeUrl);
-            const fullLink = window.location.origin + window.location.pathname + '#c=' + hash;
-            
+            const fullLink = window.location.origin + window.location.pathname + '#c=' + btoa(activeUrl);
             navigator.clipboard.writeText(fullLink).then(() => {
                 document.getElementById('share-feedback').innerText = "Link Copied!";
                 setTimeout(() => document.getElementById('share-feedback').innerText = "", 2000);
             });
         }
-
-        // --- CONNECTION MONITOR ---
-        const statusEl = document.getElementById('net-status');
-        
-        gun.on('hi', (peer) => {
-            statusEl.classList.add('connected');
-            statusEl.title = `Mesh Connected: ${peer.url}`;
-            log(`CONNECTED: ${peer.url || 'Peer'}`);
-            if(peer.url) updateQR(peer.url);
-        });
-        
-        gun.on('bye', (peer) => {
-            log(`DISCONNECTED: ${peer.url || 'Peer'}`);
-        });
-
-        // --- LOCAL BROADCAST (TAB SYNC) ---
-        const bc = new BroadcastChannel('m4_v24_sync');
-        bc.onmessage = (ev) => {
-            if(ev.data && ev.data.type === 'msg' && ev.data.room === currentTarget) {
-                if(!document.getElementById('msg-' + (ev.data.data.localId || ev.data.data.time))) {
-                    drawMessage(ev.data.data);
-                }
-            }
-        };
-
         function addPeer() {
             let url = document.getElementById('new-peer-url').value;
             url = normalizePeerUrl(url);
@@ -314,30 +240,9 @@
                 savedPeers.push(url);
                 localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
                 gun.opt({ peers: [url] });
-                log(`Adding custom peer: ${url}`);
+                log(`Added: ${url}`);
                 updateQR(url);
                 document.getElementById('new-peer-url').value = '';
-            }
-        }
-
-        // --- GLOBALS & HOTKEYS ---
-        window.cmd = (c) => runCode(c);
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.altKey && e.key === 'c') { e.preventDefault(); document.getElementById('message').focus(); }
-            if (e.altKey && e.key === 'm') { e.preventDefault(); document.getElementById('code-in').focus(); }
-            if (e.altKey && e.key === 'r') { e.preventDefault(); document.querySelector('.list-item')?.focus(); }
-            if (e.key === 'Escape') closeModals();
-        });
-
-        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
-        function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); document.getElementById('code-in').focus(); }
-        function openModal(id) { 
-            closeModals(); 
-            document.getElementById('modal-'+id).style.display = 'flex';
-            if(id === 'network') {
-                const activeUrl = savedPeers.length > 0 ? savedPeers[savedPeers.length-1] : peers[0];
-                updateQR(activeUrl);
             }
         }
 
@@ -345,29 +250,137 @@
         let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
         let myName = localStorage.getItem('m4_name') || "Guest";
         localStorage.setItem('m4_handle', myHandle);
-
-        let currentTarget = "#GENERAL", currentLang = localStorage.getItem('m4_lang') || 'en';
-
-        const trans = {
-            en: { send: "SEND", rooms: "ROOMS", users: "USERS", help: "soft: corners\nsnow: toggle\nclean: wipe cache\ntheme: picker\nnick @user Name\nconnect [ip:port]\nrelay list", users_lbl: "USERS" },
-            ru: { send: "ОТПРАВИТЬ", rooms: "КОМНАТЫ", users: "ЛЮДИ", help: "soft: углы\nsnow: снег\nclean: очистка кэша\ntheme: темы\nnick @user Имя\nconnect [ip:port]", users_lbl: "ЛЮДИ" }
+        let currentTarget = "#GENERAL";
+        
+        // --- SYNC ENGINE (FIXED) ---
+        const bc = new BroadcastChannel('m4_v24_sync');
+        bc.onmessage = (ev) => {
+            if(ev.data && ev.data.type === 'msg' && ev.data.room === currentTarget) {
+                if(!document.getElementById('msg-' + (ev.data.data.localId || ev.data.data.time))) drawMessage(ev.data.data);
+            }
         };
 
-        const themeColors = {
-            'light': '#007aff', 'dark': '#0f0',
-            'coffee': '#8d6e63', 'coffee-dark': '#a67c52',
-            'emerald': '#2ecc71', 'midnight': '#5080ff',
-            'amber': '#ffbf00', 'solarized': '#268bd2',
-            'blue': '#00e5ff', 'purple': '#bf5af2',
-            'crimson': '#ff4d4d'
-        };
-
-        function updateFavicon(theme) {
-            const color = themeColors[theme] || '#007aff';
-            const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${color}"/><text y=".9em" font-size="70" fill="#fff" font-family="monospace" font-weight="bold" x="15">M4</text></svg>`;
-            document.getElementById('dynamic-favicon').href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        function send() {
+            const i = document.getElementById('message'); if(!i.value) return;
+            const lId = Date.now();
+            const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
+            
+            drawMessage(d, true); // Optimistic
+            bc.postMessage({type:'msg', room: currentTarget, data: d}); // Local
+            gun.get('m4_mesh_v24').get(currentTarget).set(d); // Network
+            i.value = "";
         }
 
+        function syncRoom(roomName) {
+            document.getElementById('chat').innerHTML = ""; // Clear Chat
+            
+            // STRICT CHANNEL FILTERING:
+            // 1. Use .map().on() for realtime updates
+            // 2. Filter incoming data by channel name to prevent cross-talk
+            gun.get('m4_mesh_v24').get(roomName).map().on((d) => {
+                if(!d || d.channel !== roomName) return; // THE FIX
+                if(document.getElementById('msg-' + (d.localId || d.time))) return;
+                drawMessage(d);
+            });
+        }
+
+        function drawMessage(d, isP=false) {
+            // Extra safety check in drawing
+            if(d.channel !== currentTarget) return;
+
+            const chat = document.getElementById('chat');
+            const div = document.createElement('div');
+            const isMe = d.handle === myHandle;
+            div.id = 'msg-' + (d.localId || d.time);
+            div.className = 'msg ' + (isMe ? 'msg-mine' : 'msg-other');
+            let content = (!isMe) ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${d.from} (@${d.handle})</span>` : "";
+            div.innerHTML = content + d.msg.replace(new RegExp(`@${myHandle}\\b`, 'gi'), `<span class="mention">@${myHandle}</span>`);
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function switchChannel(t) { 
+            currentTarget = t; 
+            document.getElementById('header-text').innerText = t; 
+            
+            // Fix Highlighting
+            document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active-chan'));
+            
+            // Try ID (Rooms)
+            const roomEl = document.getElementById('room-' + t.replace('#',''));
+            if(roomEl) roomEl.classList.add('active-chan');
+            else {
+                // Try ID (User)
+                const userEl = document.getElementById('peer-' + t);
+                if(userEl) userEl.classList.add('active-chan');
+            }
+
+            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+            syncRoom(t);
+        }
+
+        // --- PRESENCE ---
+        function announcePresence() { gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()}); }
+        announcePresence(); setInterval(announcePresence, 10000);
+
+        gun.get('m4_users_v24').map().on((user, handle) => {
+            if(!user || !user.name) return;
+            renderPeer(user, handle);
+        });
+
+        function renderPeer(user, handle) {
+            const list = document.getElementById('user-list');
+            let el = document.getElementById('peer-' + handle);
+            if(!el) {
+                el = document.createElement('div'); el.id = 'peer-' + handle; el.className = 'list-item';
+                el.tabIndex = 0;
+                el.onclick = () => switchChannel(handle); // DM support
+                el.onkeydown = (e) => { if(e.key === 'Enter') switchChannel(handle); };
+                list.appendChild(el);
+            }
+            const isOnline = (Date.now() - (user.lastSeen || 0)) < 60000;
+            el.innerHTML = `<span>${user.name} (@${handle})</span><span class="status-dot ${isOnline?'online':''}"></span>`;
+            el.style.opacity = isOnline ? '1' : '0.6';
+        }
+
+        // --- ROOMS ---
+        let customRooms = JSON.parse(localStorage.getItem('m4_rooms') || '["GENERAL","TECH","RANDOM"]');
+        function renderRooms() {
+            const list = document.getElementById('room-list');
+            list.innerHTML = "";
+            customRooms.forEach(r => {
+                const d = document.createElement('div');
+                d.id = 'room-' + r; 
+                d.className = 'list-item'; d.innerText = '#'+r; d.tabIndex = 0;
+                if(r === currentTarget.replace('#','')) d.classList.add('active-chan');
+                d.onclick = () => switchChannel('#'+r);
+                d.onkeydown = (e) => { if(e.key==='Enter') switchChannel('#'+r); };
+                list.appendChild(d);
+            });
+        }
+        function createRoom() {
+            const r = document.getElementById('new-room-name').value.trim().toUpperCase().replace(/#/g,'');
+            if(r && !customRooms.includes(r)) {
+                customRooms.push(r);
+                localStorage.setItem('m4_rooms', JSON.stringify(customRooms));
+                renderRooms();
+                switchChannel('#'+r);
+            }
+            closeModals();
+        }
+
+        // --- UI & HOTKEYS ---
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 'c') { e.preventDefault(); document.getElementById('message').focus(); }
+            if (e.altKey && e.key === 'm') { e.preventDefault(); document.getElementById('code-in').focus(); }
+            if (e.key === 'Escape') closeModals();
+        });
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+        function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); document.getElementById('code-in').focus(); }
+        function openModal(id) { 
+            closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; 
+            if(id==='network') updateQR(savedPeers.length>0?savedPeers[savedPeers.length-1]:peers[0]);
+        }
         function startRenaming(type) { 
             const el = document.getElementById(type === 'name' ? 'my-name-display' : 'my-handle-display');
             if(el.querySelector('input')) return;
@@ -385,184 +398,38 @@
             announcePresence();
         }
 
-        function announcePresence() {
-            gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()});
-        }
-        announcePresence();
-        setInterval(announcePresence, 10000);
-
-        function send() {
-            const i = document.getElementById('message'); if(!i.value) return;
-            const lId = Date.now();
-            const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
-            
-            drawMessage(d, true);
-            bc.postMessage({type:'msg', room: currentTarget, data: d}); 
-            gun.get('m4_mesh_v24').get(currentTarget).set(d); 
-            
-            i.value = "";
-        }
-
-        function syncRoom(roomName) {
-            const chat = document.getElementById('chat');
-            chat.innerHTML = "";
-            gun.get('m4_mesh_v24').get(roomName).map().once((d) => {
-                if(!d || document.getElementById('msg-' + (d.localId || d.time))) return;
-                drawMessage(d);
-            });
-        }
-
-        gun.get('m4_users_v24').map().on((user, handle) => {
-            if(!user || !user.name) return;
-            renderPeer(user, handle);
-        });
-
-        function renderPeer(user, handle) {
-            const list = document.getElementById('user-list');
-            let el = document.getElementById('peer-' + handle);
-            if(!el) {
-                el = document.createElement('div'); el.id = 'peer-' + handle; el.className = 'list-item';
-                el.tabIndex = 0;
-                el.onclick = () => switchChannel(handle);
-                el.onkeydown = (e) => { if(e.key === 'Enter') switchChannel(handle); };
-                list.appendChild(el);
-            }
-            
-            const isOnline = (Date.now() - (user.lastSeen || 0)) < 60000;
-            const statusClass = isOnline ? 'status-dot online' : 'status-dot';
-            let txt = `${user.name} (@${handle})`;
-            if(handle === myHandle) txt += " (You)";
-            
-            el.innerHTML = `<span>${txt}</span><span class="${statusClass}"></span>`;
-            el.style.opacity = isOnline ? '1' : '0.6';
-        }
-
-        function createRoom() {
-            const r = document.getElementById('new-room-name').value.trim().replace(/#/g,'');
-            if(r) {
-                const d = document.createElement('div');
-                d.id = 'room-' + r.toUpperCase();
-                d.className = 'list-item'; d.innerText = '#'+r.toUpperCase();
-                d.tabIndex = 0;
-                d.onclick = () => switchChannel('#'+r.toUpperCase());
-                d.onkeydown = (e) => { if(e.key==='Enter') switchChannel('#'+r.toUpperCase()); };
-                document.getElementById('room-list').appendChild(d);
-                closeModals();
-            }
-        }
-
-        function drawMessage(d, isP=false) {
-            const chat = document.getElementById('chat'); const div = document.createElement('div');
-            const isMe = d.handle === myHandle;
-            div.id = 'msg-' + (d.localId || d.time);
-            div.className = 'msg ' + (isMe ? 'msg-mine' : 'msg-other');
-            let content = (!isMe) ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${d.from} (@${d.handle})</span>` : "";
-            div.innerHTML = content + d.msg.replace(new RegExp(`@${myHandle}\\b`, 'gi'), `<span class="mention">@${myHandle}</span>`);
-            chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
-        }
-
-        function switchChannel(t) { 
-            currentTarget = t; 
-            document.getElementById('header-text').innerText = t; 
-            
-            // Remove highlighting from all items (Users + Rooms)
-            document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active-chan'));
-            
-            // Highlight specific ID first (Room)
-            const roomEl = document.getElementById('room-' + t.replace('#',''));
-            if(roomEl) {
-                roomEl.classList.add('active-chan');
-            } else {
-                // If not found, try finding user handle
-                const userEl = document.getElementById('peer-' + t);
-                if(userEl) userEl.classList.add('active-chan');
-            }
-
-            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
-            syncRoom(t);
-        }
-
+        // --- COMMANDS ---
         function runCode(manual = null) {
             const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
             const themes = ['light','dark','blue','purple','crimson','emerald','midnight','coffee','coffee-dark','solarized','amber'];
-            
             if(themes.includes(c)) { 
-                document.body.setAttribute('data-theme', c); 
-                localStorage.setItem('m4_theme', c);
-                updateFavicon(c); 
-                if(c === 'light') document.body.removeAttribute('data-theme');
+                document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); updateFavicon(c); 
             }
             else if(c.startsWith('connect ')) {
-                let url = c.split(' ')[1];
-                if(url) {
-                    url = normalizePeerUrl(url);
-                    savedPeers.push(url);
-                    localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers));
-                    gun.opt({ peers: [url] });
-                    log(`Connecting to: ${url}`);
-                }
+                let url = c.split(' ')[1]; if(url) { savedPeers.push(normalizePeerUrl(url)); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); gun.opt({ peers: [normalizePeerUrl(url)] }); }
             }
-            else if(c === 'relay list') {
-                log('Current Peers:');
-                allPeers.forEach(p => log(p));
-                openModal('network');
-            }
-            else if(c === 'soft') { const cur = localStorage.getItem('m4_soft')==='true'; applySoft(!cur?'true':'false'); localStorage.setItem('m4_soft', !cur?'true':'false'); }
-            else if(c === 'snow') { const cur = localStorage.getItem('m4_snow')==='true'; applySnow(!cur?'true':'false'); localStorage.setItem('m4_snow', !cur?'true':'false'); }
+            else if(c === 'relay list') openModal('network');
             else if(c === 'clean') { localStorage.clear(); location.reload(); }
-            else if(c === 'help') { document.getElementById('help-list').innerText = (trans[currentLang] || trans.en).help; openModal('help'); }
-            else if(c === 'theme') openModal('themes');
-            else if(['rus','eng','ger','fra','spa'].includes(c)) { setLanguage(c === 'rus' ? 'ru' : c); }
-            
-            const fb = document.getElementById('cmd-feedback'); fb.innerText = "OK: " + c; fb.style.opacity = 1; setTimeout(() => fb.style.opacity = 0, 3000); i.value = "";
+            else if(c === 'help') { document.getElementById('help-list').innerText = "Commands: theme [name], connect [url], clean, help"; openModal('help'); }
+            else if(c === 'theme') {
+                const g = document.getElementById('theme-grid'); g.innerHTML='';
+                themes.forEach(t => { 
+                    const b = document.createElement('button'); b.className='btn'; b.innerText=t.toUpperCase(); 
+                    b.onclick=()=>runCode(t); g.appendChild(b); 
+                });
+                openModal('themes');
+            }
+            document.getElementById('cmd-feedback').innerText = "OK"; setTimeout(()=>document.getElementById('cmd-feedback').innerText="", 2000); i.value = "";
         }
 
-        function applySoft(v) { document.documentElement.style.setProperty('--radius', v === 'true' ? '18px' : '0px'); }
-        function setLanguage(l) { 
-            const t = trans[l] || trans.en; currentLang = l; localStorage.setItem('m4_lang', l); 
-            document.getElementById('lbl-rooms').innerText = t.rooms;
-            document.getElementById('lbl-users').innerText = t.users_lbl;
-            document.getElementById('send-btn').innerText = t.send;
-        }
-
-        let sInt = null; 
-        function applySnow(v) { 
-            const c = document.getElementById('snow-canvas'); 
-            if (v === 'true') { c.style.display = 'block'; if (!sInt) startSnow(); } 
-            else { c.style.display = 'none'; clearInterval(sInt); sInt = null; } 
-        }
-        function startSnow() {
-            const c = document.getElementById('snow-canvas'); const ctx = c.getContext('2d');
-            let w = c.width = window.innerWidth, h = c.height = window.innerHeight, fs = [];
-            for(let i=0; i<80; i++) fs.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*3+1, d: Math.random()*0.5+0.5});
-            function draw() { ctx.clearRect(0,0,w,h); ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.beginPath(); for(let f of fs){ ctx.moveTo(f.x,f.y); ctx.arc(f.x,f.y,f.r, 0, Math.PI*2,true); } ctx.fill(); move(); }
-            function move() { for(let f of fs){ f.y += f.d; if(f.y>h){ f.x=Math.random()*w; f.y=-10; } } }
-            sInt = setInterval(draw, 33);
-        }
-
-        // --- BOOT ---
+        // --- STARTUP ---
         const savedTheme = localStorage.getItem('m4_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme);
         updateFavicon(savedTheme); 
-        
         document.getElementById('my-name-display').innerText = myName;
         document.getElementById('my-handle-display').innerText = '@' + myHandle;
-        applySoft(localStorage.getItem('m4_soft')); 
-        applySnow(localStorage.getItem('m4_snow'));
-        setLanguage(localStorage.getItem('m4_lang') || 'en');
         
-        const roomList = document.getElementById('room-list');
-        roomList.innerHTML = ''; 
-        ['GENERAL','TECH','RANDOM'].forEach(r => {
-             const d = document.createElement('div');
-             d.id = 'room-' + r; 
-             d.className = 'list-item'; d.innerText = '#'+r; d.tabIndex = 0;
-             if(r==='GENERAL') d.classList.add('active-chan');
-             d.onclick = () => switchChannel('#'+r);
-             d.onkeydown = (e) => { if(e.key==='Enter') switchChannel('#'+r); };
-             roomList.appendChild(d);
-        });
-        
+        renderRooms();
         syncRoom('GENERAL');
     </script>
 </body>
