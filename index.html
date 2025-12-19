@@ -84,6 +84,7 @@
     </style>
 </head>
 <body data-theme="light">
+    <canvas id="snow-canvas"></canvas>
     
     <div id="sidebar">
         <div id="logo-container">
@@ -166,8 +167,6 @@
         </div>
     </div>
 
-    <link rel="icon" id="dynamic-favicon" href="">
-
     <script>
         // --- UTILS ---
         function normalizePeerUrl(url) {
@@ -178,7 +177,7 @@
             return url;
         }
 
-        // --- INIT & PEERS ---
+        // --- INIT ---
         const urlParams = new URLSearchParams(window.location.search);
         const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
         const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
@@ -252,7 +251,7 @@
         localStorage.setItem('m4_handle', myHandle);
         let currentTarget = "#GENERAL";
         
-        // --- SYNC ENGINE (FIXED) ---
+        // --- SYNC ---
         const bc = new BroadcastChannel('m4_v24_sync');
         bc.onmessage = (ev) => {
             if(ev.data && ev.data.type === 'msg' && ev.data.room === currentTarget) {
@@ -265,29 +264,23 @@
             const lId = Date.now();
             const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
             
-            drawMessage(d, true); // Optimistic
-            bc.postMessage({type:'msg', room: currentTarget, data: d}); // Local
-            gun.get('m4_mesh_v24').get(currentTarget).set(d); // Network
+            drawMessage(d, true); 
+            bc.postMessage({type:'msg', room: currentTarget, data: d}); 
+            gun.get('m4_mesh_v24').get(currentTarget).set(d); 
             i.value = "";
         }
 
         function syncRoom(roomName) {
-            document.getElementById('chat').innerHTML = ""; // Clear Chat
-            
-            // STRICT CHANNEL FILTERING:
-            // 1. Use .map().on() for realtime updates
-            // 2. Filter incoming data by channel name to prevent cross-talk
+            document.getElementById('chat').innerHTML = ""; 
             gun.get('m4_mesh_v24').get(roomName).map().on((d) => {
-                if(!d || d.channel !== roomName) return; // THE FIX
+                if(!d || d.channel !== roomName) return; 
                 if(document.getElementById('msg-' + (d.localId || d.time))) return;
                 drawMessage(d);
             });
         }
 
         function drawMessage(d, isP=false) {
-            // Extra safety check in drawing
             if(d.channel !== currentTarget) return;
-
             const chat = document.getElementById('chat');
             const div = document.createElement('div');
             const isMe = d.handle === myHandle;
@@ -302,15 +295,11 @@
         function switchChannel(t) { 
             currentTarget = t; 
             document.getElementById('header-text').innerText = t; 
-            
-            // Fix Highlighting
             document.querySelectorAll('.list-item').forEach(el => el.classList.remove('active-chan'));
             
-            // Try ID (Rooms)
             const roomEl = document.getElementById('room-' + t.replace('#',''));
             if(roomEl) roomEl.classList.add('active-chan');
             else {
-                // Try ID (User)
                 const userEl = document.getElementById('peer-' + t);
                 if(userEl) userEl.classList.add('active-chan');
             }
@@ -324,7 +313,11 @@
         announcePresence(); setInterval(announcePresence, 10000);
 
         gun.get('m4_users_v24').map().on((user, handle) => {
-            if(!user || !user.name) return;
+            if(!user || !user.name) {
+                const dead = document.getElementById('peer-' + handle);
+                if(dead) dead.remove();
+                return;
+            }
             renderPeer(user, handle);
         });
 
@@ -334,12 +327,14 @@
             if(!el) {
                 el = document.createElement('div'); el.id = 'peer-' + handle; el.className = 'list-item';
                 el.tabIndex = 0;
-                el.onclick = () => switchChannel(handle); // DM support
+                el.onclick = () => switchChannel(handle);
                 el.onkeydown = (e) => { if(e.key === 'Enter') switchChannel(handle); };
                 list.appendChild(el);
             }
             const isOnline = (Date.now() - (user.lastSeen || 0)) < 60000;
-            el.innerHTML = `<span>${user.name} (@${handle})</span><span class="status-dot ${isOnline?'online':''}"></span>`;
+            let txt = `${user.name} (@${handle})`;
+            if(handle === myHandle) txt += " (You)";
+            el.innerHTML = `<span>${txt}</span><span class="status-dot ${isOnline?'online':''}"></span>`;
             el.style.opacity = isOnline ? '1' : '0.6';
         }
 
@@ -391,8 +386,18 @@
         function finishRename(type) {
             const i = document.getElementById('ren-in'); if(!i) return;
             let n = i.value.trim().replace(/\s/g, ''); if(!n) n = (type==='name'?'Guest':'user');
-            if(type === 'name') { myName = n; localStorage.setItem('m4_name', n); }
-            else { myHandle = n; localStorage.setItem('m4_handle', n); }
+            
+            if(type === 'handle' && myHandle !== n) {
+                // DELETE OLD IDENTITY
+                gun.get('m4_users_v24').get(myHandle).put(null);
+                const oldEl = document.getElementById('peer-' + myHandle);
+                if(oldEl) oldEl.remove();
+                
+                myHandle = n; localStorage.setItem('m4_handle', n); 
+            } else if(type === 'name') {
+                myName = n; localStorage.setItem('m4_name', n); 
+            }
+            
             document.getElementById('my-name-display').innerText = myName;
             document.getElementById('my-handle-display').innerText = '@' + myHandle;
             announcePresence();
