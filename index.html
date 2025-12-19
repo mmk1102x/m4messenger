@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%238d6e63%22/><text y=%22.9em%22 font-size=%2270%22 fill=%22%23fff%22 font-family=%22monospace%22 font-weight=%22bold%22 x=%2215%22>M4</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23007aff%22/><text y=%22.9em%22 font-size=%2270%22 fill=%22%23fff%22 font-family=%22monospace%22 font-weight=%22bold%22 x=%2215%22>M4</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <style>
@@ -15,66 +15,66 @@
             --btn-red-bg: #ffeef0; --btn-red-border: #ffccc7; --btn-red-text: #ff4d4f;
             --radius: 0px; --border-style: solid;
         }
-        [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-bg: #020; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; --btn-red-bg: #200; --btn-red-border: #500; --btn-red-text: #f00; }
+        /* --- ALL THEMES --- */
+        [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #38383a; --text: #32d74b; --text-dim: #1c541c; --hl: #32d74b; --hl-bg: #1c1c1e; --warn: #ff453a; --input-bg: #1c1c1e; --msg-mine: #1c541c; --msg-other: #2c2c2e; --mention: #ffd60a; --btn-red-bg: #2c0000; --btn-red-border: #500; --btn-red-text: #ff453a; }
         [data-theme="text"] { --bg: #000; --panel: #000; --border: #fff; --text: #fff; --text-dim: #888; --hl: #fff; --hl-bg: #222; --warn: #fff; --input-bg: #000; --msg-mine: #000; --msg-other: #000; --mention: #fff; --btn-red-bg: #000; --btn-red-border: #fff; --btn-red-text: #fff; --border-style: dashed; }
         [data-theme="coffee"] { --bg: #fdf6e3; --panel: #eee8d5; --border: #d3af86; --text: #5d4037; --text-dim: #a1887f; --hl: #8d6e63; --hl-bg: #eee8d5; --warn: #c62828; --input-bg: #fdf6e3; --msg-mine: #8d6e63; --msg-other: #efebe9; --mention: #bf360c; --btn-red-bg: #ffebee; --btn-red-border: #ffcdd2; --btn-red-text: #c62828; }
+        [data-theme="emerald"] { --bg: #06100c; --panel: #0a1a14; --border: #143a2b; --text: #2ecc71; --text-dim: #1d6e41; --hl: #2ecc71; --hl-bg: #0a1a14; --warn: #ff4d4d; --input-bg: #06100c; --msg-mine: #1d6e41; --msg-other: #122b21; --mention: #fff; --btn-red-bg: #2a0a0a; --btn-red-border: #600; --btn-red-text: #f44; }
+        [data-theme="midnight"] { --bg: #00040a; --panel: #000814; --border: #002244; --text: #5080ff; --text-dim: #004488; --hl: #5080ff; --hl-bg: #000814; --warn: #ff453a; --input-bg: #00040a; --msg-mine: #004488; --msg-other: #001122; --mention: #fff; --btn-red-bg: #2c0000; --btn-red-border: #500; --btn-red-text: #ff453a; }
+        [data-theme="amber"] { --bg: #0d0b00; --panel: #141100; --border: #443300; --text: #ffbf00; --text-dim: #886600; --hl: #ffbf00; --hl-bg: #141100; --warn: #ff4d4d; --input-bg: #0d0b00; --msg-mine: #443300; --msg-other: #1a1600; --mention: #fff; --btn-red-bg: #2a0000; --btn-red-border: #600; --btn-red-text: #f44; }
+        [data-theme="solarized"] { --bg: #002b36; --panel: #073642; --border: #586e75; --text: #839496; --text-dim: #586e75; --hl: #268bd2; --hl-bg: #073642; --warn: #dc322f; --input-bg: #002b36; --msg-mine: #073642; --msg-other: #001e26; --mention: #b58900; --btn-red-bg: #2a0a0a; --btn-red-border: #600; --btn-red-text: #dc322f; }
         [data-theme="blue"] { --bg: #001f3f; --panel: #001a33; --border: #003366; --text: #00e5ff; --text-dim: #007acc; --hl: #00e5ff; --hl-bg: #003366; --warn: #ff4136; --input-bg: #001226; --msg-mine: #003366; --msg-other: #001a33; --mention: #fff; --btn-red-bg: #4c0000; --btn-red-border: #800000; --btn-red-text: #ff4d4d; }
         [data-theme="purple"] { --bg: #0f0a1e; --panel: #1a1233; --border: #2d1e5e; --text: #bf5af2; --text-dim: #5e2d91; --hl: #bf5af2; --hl-bg: #2d1e5e; --warn: #ff375f; --input-bg: #0f0a1e; --msg-mine: #5e2d91; --msg-other: #1c1c1e; --mention: #00ffff; --btn-red-bg: #2a0a0a; --btn-red-border: #600; --btn-red-text: #ff375f; }
         [data-theme="crimson"] { --bg: #1a0505; --panel: #280a0a; --border: #441111; --text: #ff4d4d; --text-dim: #882222; --hl: #ff4d4d; --hl-bg: #441111; --warn: #ffcc00; --input-bg: #0d0101; --msg-mine: #661111; --msg-other: #110303; --mention: #ffffff; --btn-red-bg: #440000; --btn-red-border: #ff0000; --btn-red-text: #ffffff; }
 
-        body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
-        
-        #mobile-header { display: none; padding: 10px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); justify-content: space-between; align-items: center; height: 50px; width: 100%; box-sizing: border-box; }
-        
-        #sidebar { 
-            width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); 
-            display: flex; flex-direction: column; padding: 20px; z-index: 1000; box-sizing: border-box; 
-            height: 100dvh;
-        }
+        [data-exp="true"] { --radius: 20px !important; }
+        [data-theme="text"] #main::before { content: "________________________________________________________________________________"; position: absolute; top:0; color: var(--border); font-size: 10px; overflow: hidden; height: 12px; width: 100%; z-index: 10; }
 
-        #logo-container { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
+        #sidebar { width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); display: flex; flex-direction: column; padding: 20px; z-index: 1000; box-sizing: border-box; height: 100dvh; }
+        #logo-container { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; }
         #logo-icon { width: 50px; height: 50px; background: var(--hl); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5em; flex-shrink: 0; }
-        #logo-text { font-weight: 900; font-size: 1.3em; letter-spacing: -1px; }
         
         #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; width: 100%; }
-        .section-title { color: var(--text-dim); font-size: 0.75em; margin: 15px 0 10px 0; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
-        .scroll-list { overflow-y: auto; max-height: 30vh; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; border-radius: var(--radius); }
+        .section-title { color: var(--text-dim); font-size: 0.75em; margin: 20px 0 10px 0; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; }
+        .scroll-list { overflow-y: auto; max-height: 35vh; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; border-radius: var(--radius); }
         .list-item { padding: 12px; cursor: pointer; border-bottom: 1px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; transition: 0.2s; }
-        .active-chan { background: var(--hl); color: #fff !important; border-left: 5px solid var(--hl-border); font-weight: 800; }
+        .active-chan { background: var(--hl); color: #fff !important; font-weight: 800; }
         
+        /* FLEXIBLE BUTTONS */
         .btn, input, #send-btn { border-radius: var(--radius) !important; transition: 0.2s; border: 2px var(--border-style) var(--border); font-family: inherit; }
-        .btn { background: var(--panel); color: var(--text); padding: 10px; cursor: pointer; width: 100%; margin-bottom: 5px; font-weight: bold; text-decoration: none; display: block; text-align: center; }
+        .btn { background: var(--panel); color: var(--text); padding: 12px; cursor: pointer; width: 100%; margin-bottom: 5px; font-weight: bold; text-decoration: none; display: block; text-align: center; height: auto; min-height: 40px; }
         .btn-red { background: var(--btn-red-bg); border-color: var(--btn-red-border); color: var(--btn-red-text); }
         
         #chat { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-        .msg { padding: 10px 14px; border-radius: 18px; max-width: 85%; line-height: 1.4em; word-wrap: break-word; position: relative; font-size: 1em; border: 2px var(--border-style) var(--border); }
+        .msg { padding: 10px 14px; border-radius: 20px; max-width: 85%; line-height: 1.4em; word-wrap: break-word; transition: 0.2s; position: relative; font-size: 1em; border: 2px var(--border-style) var(--border); }
         .msg-mine { align-self: flex-end; background: var(--msg-mine); color: #fff; border-bottom-right-radius: 4px !important; }
         .msg-other { align-self: flex-start; background: var(--msg-other); border: 2px var(--border-style) var(--border); border-bottom-left-radius: 4px !important; }
-        .msg-system { align-self: center; background: none !important; border: none !important; font-family: monospace; font-size: 0.85em; color: var(--text-dim); text-align: left; }
-        .mention { font-weight: 800; background: var(--mention); color: #000 !important; padding: 1px 6px; border-radius: 6px; }
-
+        
         #message { flex-grow: 1; background: var(--input-bg); color: var(--text); padding: 12px; font-size: 16px; outline: none; }
         #send-btn { background: var(--hl-border); color: #fff; padding: 0 20px; font-weight: bold; cursor: pointer; border: none !important; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(10px); }
-        .modal-box { background: var(--bg); border: 4px var(--border-style) var(--hl-border); padding: 30px; width: 450px; max-width: 90%; color: var(--text); border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
-
-        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; display: none; }
+        .modal-box { background: var(--bg); border: 4px var(--border-style) var(--hl-border); padding: 30px; width: 420px; max-width: 90%; color: var(--text); border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,0.4); display: flex; flex-direction: column; }
 
         @media (max-width: 768px) { #mobile-header { display: flex; } #sidebar { position: fixed; top: 50px; left: 0; bottom: 0; transform: translateX(-100%); width: 280px; } #sidebar.open { transform: translateX(0); } #main { width: 100vw; height: calc(100dvh - 50px); } }
     </style>
 </head>
 <body data-theme="light">
-    <canvas id="snow-canvas"></canvas>
-    <div id="mobile-header"><div onclick="toggleSidebar()" style="font-size: 1.5em; cursor: pointer;">☰</div><div style="font-weight:900;">M4messenger</div><div style="width:30px;"></div></div>
+    <canvas id="snow-canvas" style="position:fixed;top:0;left:0;pointer-events:none;z-index:999;display:none;"></canvas>
     
     <div id="sidebar">
         <div id="logo-container"><div id="logo-icon">M4</div><div id="logo-text">messenger</div></div>
-        <div id="my-name-display" onclick="startRenaming()" style="font-weight:900; font-size:1.1em; margin-bottom:20px; cursor:pointer; text-align: center;">Guest@00000000</div>
         
+        <!-- IDENTITY SECTION -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div id="my-name-display" onclick="startRenaming('name')" style="font-weight:900; font-size:1.1em; cursor:pointer; overflow: hidden; text-overflow: ellipsis;">Guest</div>
+            <div id="my-handle-display" onclick="startRenaming('handle')" style="font-size:0.8em; opacity:0.6; cursor:pointer;">@handle</div>
+        </div>
+
         <div class="section-title"><span id="lbl-rooms">ROOMS</span> <span onclick="openModal('create-room')" style="cursor:pointer; color:var(--hl);">[+]</span></div>
         <div id="room-list" class="scroll-list"></div>
-        <div class="section-title">PEERS (MESH)</div>
+        <div class="section-title">USERS</div>
         <div id="user-list" class="scroll-list"></div>
         
         <div id="bottom-panel" style="margin-top: auto;">
@@ -88,119 +88,134 @@
             </div>
             <form onsubmit="event.preventDefault(); runCode();" style="margin-top:10px; display:flex; gap:5px;">
                 <input type="search" id="code-in" placeholder="Command..." autocomplete="off" style="flex-grow:1; background:var(--input-bg); border:2px var(--border-style) var(--border); color:var(--text); padding:10px; font-size:14px;">
-                <button type="submit" style="background:var(--hl); color:#fff; border:none; padding:10px 15px; cursor:pointer; font-weight:800;">RUN</button>
+                <button type="submit" id="btn-run" style="background:var(--hl); color:#fff; border:none; padding:10px 15px; cursor:pointer; font-weight:800;">RUN</button>
             </form>
-            <div id="cmd-feedback" style="font-size: 0.8em; height: 1.2em; color: var(--hl); margin-top: 5px; text-align: center; font-weight: bold; opacity:0; transition: 0.3s;"></div>
+            <div id="cmd-feedback" style="font-size: 0.7em; color: var(--hl); text-align: center; margin-top:5px; height:1em;"></div>
         </div>
     </div>
 
+    <div id="mobile-header">
+        <div onclick="toggleSidebar()" style="font-size: 1.5em; cursor: pointer; padding: 0 10px;">☰</div>
+        <div style="font-weight:900;">M4messenger</div>
+        <div style="width:30px;"></div>
+    </div>
+
     <div id="main">
-        <div id="chat-header" style="padding: 15px 30px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center;"><span id="header-text" style="font-weight:900; font-size:1.3em;">#GENERAL</span><button id="mute-btn" onclick="socket.emit('mute_user', currentTarget)" style="background:none; border:1px var(--border-style) var(--text-dim); color:var(--text-dim); cursor:pointer; padding:6px 20px; font-size:0.8em; font-weight:800;">MUTE</button></div>
         <div id="chat"></div>
         <form id="controls-form" onsubmit="event.preventDefault(); send();" style="padding: 15px; background: var(--panel); border-top: 2px var(--border-style) var(--border); display: flex; gap: 10px;"><input type="search" id="message" placeholder="Message..." autocomplete="off" name="msg_field_safe"><button id="send-btn" type="submit">SEND</button></form>
     </div>
 
     <!-- MODALS -->
     <div id="modal-create-room" class="modal"><div class="modal-box"><h3>NEW ROOM</h3><input id="new-room-name" placeholder="Name"><button class="btn" onclick="createRoom()">CREATE</button><button class="btn btn-red" onclick="closeModals()">CANCEL</button></div></div>
-    <div id="modal-stats" class="modal"><div class="modal-box" style="width:500px;"><h3>STATUS</h3><div id="stats-container"></div><button class="btn btn-red" onclick="closeModals()">CLOSE</button></div></div>
-    <div id="modal-help" class="modal"><div class="modal-box" style="width:450px;"><h3>COMMANDS</h3><div id="help-list" style="font-size:0.95em; line-height:2.1em;"></div><button class="btn btn-red" onclick="closeModals()">CLOSE</button></div></div>
-    <div id="modal-themes" class="modal"><div class="modal-box"><h3>THEMES</h3><div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;"><button class="btn" onclick="runCode('light');closeModals()">LIGHT</button><button class="btn" onclick="runCode('dark');closeModals()" style="background:#000; color:#0f0; border:none;">DARK</button><button class="btn" onclick="runCode('text');closeModals()" style="background:#000; color:#fff; border:1px solid #fff;">TEXT(|_)</button><button class="btn" onclick="runCode('emerald');closeModals()" style="background:#0a1a14; color:#2ecc71; border:none;">EMERALD</button><button class="btn" onclick="runCode('midnight');closeModals()" style="background:#000814; color:#5080ff; border:none;">MIDNIGHT</button><button class="btn" onclick="runCode('coffee');closeModals()" style="background:#fdf6e3; color:#5d4037; border:none;">COFFEE</button><button class="btn" onclick="runCode('crimson');closeModals()" style="background:#1a0505; color:#ff4d4d; border:none;">CRIMSON</button></div><button class="btn btn-red" onclick="closeModals()" style="margin-top:10px;">CLOSE</button></div></div>
+    <div id="modal-help" class="modal"><div class="modal-box"><h3>HELP</h3><div id="help-list" style="white-space:pre-line;font-size:0.9em;line-height:1.6em;"></div><button class="btn btn-red" onclick="closeModals()">CLOSE</button></div></div>
+    <div id="modal-themes" class="modal"><div class="modal-box"><h3>THEMES</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; max-height: 50vh; overflow-y: auto;">
+            <button class="btn" onclick="runCode('light');closeModals()">LIGHT</button><button class="btn" onclick="runCode('dark');closeModals()" style="background:#000; color:#0f0; border:none;">DARK</button>
+            <button class="btn" onclick="runCode('text');closeModals()" style="background:#000; color:#fff; border:1px solid #fff;">TEXT(|_)</button><button class="btn" onclick="runCode('emerald');closeModals()" style="background:#0a1a14; color:#2ecc71; border:none;">EMERALD</button>
+            <button class="btn" onclick="runCode('midnight');closeModals()" style="background:#000814; color:#5080ff; border:none;">MIDNIGHT</button><button class="btn" onclick="runCode('coffee');closeModals()" style="background:#fdf6e3; color:#5d4037; border:none;">COFFEE</button>
+            <button class="btn" onclick="runCode('solarized');closeModals()" style="background:#002b36; color:#839496; border:none;">SOLARIZED</button><button class="btn" onclick="runCode('blue');closeModals()" style="background:#001f3f; color:#00e5ff; border:none;">BLUE</button>
+            <button class="btn" onclick="runCode('purple');closeModals()" style="background:#0f0a1e; color:#bf5af2; border:none;">PURPLE</button><button class="btn" onclick="runCode('crimson');closeModals()" style="background:#1a0505; color:#ff4d4d; border:none;">CRIMSON</button>
+        </div><button class="btn btn-red" onclick="closeModals()" style="margin-top:10px;">CLOSE</button></div></div>
 
     <script>
         const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
         const user = gun.user().recall({storage: true});
 
-        let m4_id = localStorage.getItem('m4_id') || Math.random().toString(36).substring(2, 10);
-        localStorage.setItem('m4_id', m4_id);
-        
-        let myPureName = localStorage.getItem('m4_name') || "Guest";
-        let myFullName = `${myPureName}@${m4_id}`;
+        // Developer Console CLI
+        window.cmd = (c) => runCode(c);
+        function devLog(m) { console.log("%c[M4-SYS] " + m, "color:var(--hl); font-weight:bold;"); }
+
+        let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
+        let myName = localStorage.getItem('m4_name') || "Guest";
+        localStorage.setItem('m4_handle', myHandle);
+
         let currentTarget = "#GENERAL", currentLang = localStorage.getItem('m4_lang') || 'en', userAliases = {};
 
         const trans = {
-            en: { rooms: "ROOMS", users: "USERS", login: "Login", register: "Register", logout: "Logout", send: "SEND", help: "stats: table\nsoft: edges\nsnow: toggle\nclean: wipe\ntheme: picker\nnick @user Name\nrus/eng/ger/spa/fra: lang" },
-            ru: { rooms: "КОМНАТЫ", users: "ЛЮДИ", login: "Вход", register: "Регистрация", logout: "Выйти", send: "ОТПРАВИТЬ", help: "stats: инфо\nsoft: углы\nsnow: снег\nclean: сброс\ntheme: темы\nnick @user Имя\nrus/eng/ger/spa/fra: язык" },
-            ger: { rooms: "RÄUME", users: "BENUTZER", login: "Anmelden", register: "Registrieren", logout: "Abmelden", send: "SENDEN" },
-            spa: { rooms: "SALAS", users: "USUARIOS", login: "Entrar", register: "Registro", logout: "Salir", send: "ENVIAR" },
-            fra: { rooms: "SALLES", users: "UTILISATEURS", login: "Connexion", register: "S'inscrire", logout: "Sortie", send: "ENVOYER" }
+            en: { rooms: "ROOMS", users: "USERS", login: "Login", register: "Register", logout: "Logout", send: "SEND", delacc: "DELETE ACCOUNT", help: "clean: wipe local cache\nsoft: corners\nsnow: effects\ntheme: picker\nnick @user Name\nrus/eng/ger/spa/fra: lang\nThemes: light, dark, blue, purple, crimson, emerald, midnight, coffee, solarized" },
+            ru: { rooms: "КОМНАТЫ", users: "ЛЮДИ", login: "Вход", register: "Регистрация", logout: "Выйти", send: "ОТПРАВИТЬ", delacc: "УДАЛИТЬ", help: "clean: очистка кэша\nsoft: углы\nsnow: снег\ntheme: темы\nnick @user Имя\nТемы: light, dark, blue, purple, crimson, emerald, midnight, coffee, solarized" }
         };
 
-        window.cmd = function(code) { runCode(code); return "Executing..."; };
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); }
         function openModal(id) { closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; }
         
-        function startRenaming() { 
-            if(user.is) return; 
-            const el = document.getElementById('my-name-display'); 
-            if(el.querySelector('input')) return; 
-            el.innerHTML = `<input id="rename-input" value="${myPureName}" onblur="finishRename()" onkeypress="if(event.key==='Enter') finishRename()">`;
-            document.getElementById('rename-input').focus(); 
+        function startRenaming(type) { 
+            if(user.is) return;
+            const el = document.getElementById(type === 'name' ? 'my-name-display' : 'my-handle-display');
+            if(el.querySelector('input')) return;
+            const val = type === 'name' ? myName : myHandle;
+            el.innerHTML = `<input id="ren-in" value="${val}" style="width:80%; font-size:1em; padding:2px;" onblur="finishRename('${type}')" onkeypress="if(event.key==='Enter') finishRename('${type}')">`;
+            document.getElementById('ren-in').focus();
         }
-        function finishRename() { 
-            const i = document.getElementById('rename-input'); 
-            if(i) { 
-                const n = i.value.trim().replace(/\s/g, ''); 
-                if(n) { myPureName = n; myFullName = `${n}@${m4_id}`; localStorage.setItem('m4_name', n); } 
-                document.getElementById('my-name-display').innerText = myFullName; 
-            } 
+        function finishRename(type) {
+            const i = document.getElementById('ren-in'); if(!i) return;
+            let n = i.value.trim().replace(/\s/g, ''); if(!n) n = (type==='name'?'Guest':'m4user');
+            if(type === 'name') { myName = n; localStorage.setItem('m4_name', n); }
+            else { myHandle = n; localStorage.setItem('m4_handle', n); }
+            document.getElementById('my-name-display').innerText = myName;
+            document.getElementById('my-handle-display').innerText = '@' + myHandle;
         }
 
         function logout() { user.leave(); localStorage.removeItem('m4_name'); location.reload(); }
-        function deleteAcc() { if(confirm("Permanently delete?")) { user.delete(); logout(); } }
+        function deleteAcc() { if(confirm("Permanently delete account?")) { user.delete(); logout(); } }
 
         function send() {
             const i = document.getElementById('message'); if(!i.value) return;
             const lId = Date.now();
-            const d = { from: myFullName, msg: i.value, time: lId, channel: currentTarget, localId: lId };
+            const d = { from: myName, handle: myHandle, msg: i.value, time: lId, channel: currentTarget, localId: lId };
             drawMessage(d, true);
-            gun.get('m4_mesh_v20').get(currentTarget).set(d);
+            gun.get('m4_mesh_v22').get(currentTarget).set(d);
             i.value = "";
         }
 
-        gun.get('m4_mesh_v20').get(currentTarget).map().on((d) => {
+        gun.get('m4_mesh_v22').get(currentTarget).map().on((d) => {
             if(!d || document.getElementById('msg-' + (d.localId || d.time))) return;
             drawMessage(d);
         });
 
         function drawMessage(d, isP=false) {
             const chat = document.getElementById('chat'); const div = document.createElement('div');
-            const isMe = d.from === myFullName;
+            const isMe = d.handle === myHandle;
             div.id = 'msg-' + (d.localId || d.time);
             div.className = (d.from === 'SYSTEM') ? 'msg msg-system' : 'msg ' + (isMe ? 'msg-mine' : 'msg-other') + (isP ? ' msg-pending' : '');
-            let n = userAliases[d.from] ? `${userAliases[d.from]} (@${d.from})` : d.from;
-            let c = (!isMe && d.from !== 'SYSTEM') ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${n}</span>` : "";
-            div.innerHTML = c + d.msg.replace(new RegExp(`@${myFullName}\\b`, 'gi'), `<span class="mention">@${myFullName}</span>`);
+            let content = (!isMe && d.from !== 'SYSTEM') ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${d.from} (@${d.handle})</span>` : "";
+            div.innerHTML = content + d.msg.replace(new RegExp(`@${myHandle}\\b`, 'gi'), `<span class="mention">@${myHandle}</span>`);
             chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
         }
 
         function runCode(manual = null) {
             const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
-            if(['light','dark','text','blue','purple','crimson','emerald','midnight','coffee','solarized','amber'].includes(c)) { document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); }
+            const themes = ['light','dark','text','blue','purple','crimson','emerald','midnight','coffee','solarized','amber'];
+            if(themes.includes(c)) { 
+                document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); 
+                if(c === 'light') { document.body.removeAttribute('data-theme'); localStorage.removeItem('m4_theme'); }
+            }
             else if(c === 'soft') { const cur = localStorage.getItem('m4_soft')==='true'; applySoft(!cur?'true':'false'); localStorage.setItem('m4_soft', !cur?'true':'false'); }
             else if(c === 'snow') { const cur = localStorage.getItem('m4_snow')==='true'; applySnow(!cur?'true':'false'); localStorage.setItem('m4_snow', !cur?'true':'false'); }
-            else if(c === 'clean') { localStorage.clear(); location.reload(); }
-            else if(c === 'help') { updateHelpList(); openModal('help'); }
+            else if(c === 'clean') { localStorage.clear(); alert("Local cache cleaned."); location.reload(); }
+            else if(c === 'help') { document.getElementById('help-list').innerText = trans[currentLang].help || trans.en.help; openModal('help'); }
             else if(c === 'theme') openModal('themes');
             else if(['rus','eng','ger','fra','spa'].includes(c)) { setLanguage(c === 'rus' ? 'ru' : c); }
-            else if(c === 'stats') { document.getElementById('stats-container').innerHTML = `<table class="stats-table"><tr><td>ID</td><td>${myFullName}</td></tr><tr><td>Theme</td><td>${localStorage.getItem('m4_theme')}</td></tr></table>`; openModal('stats'); }
             const fb = document.getElementById('cmd-feedback'); fb.innerText = "OK: " + c; fb.style.opacity = 1; setTimeout(() => fb.style.opacity = 0, 3000); i.value = "";
+            devLog("Executed: " + c);
         }
 
         function applySoft(v) { document.documentElement.style.setProperty('--radius', v === 'true' ? '18px' : '0px'); }
         function setLanguage(l) { 
             const t = trans[l] || trans.en; currentLang = l; localStorage.setItem('m4_lang', l); 
-            ['lbl-rooms', 'btn-login', 'btn-register', 'btn-logout', 'send-btn'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = t[id.replace('btn-','').replace('lbl-','')]; });
+            ['lbl-rooms', 'btn-login', 'btn-register', 'btn-logout', 'btn-delete', 'send-btn'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).innerText = t[id.replace('btn-','').replace('lbl-','')]; });
         }
-        function updateHelpList() { document.getElementById('help-list').innerText = trans[currentLang].help || trans.en.help; }
-
         let sInt = null; function applySnow(v) { const c = document.getElementById('snow-canvas'); if (v === 'true') { c.style.display = 'block'; if (!sInt) startSnow(); } else { c.style.display = 'none'; clearInterval(sInt); sInt = null; } }
         function startSnow() { const c = document.getElementById('snow-canvas'); const ctx = c.getContext('2d'); let w = c.width = window.innerWidth, h = c.height = window.innerHeight, fs = []; for(let i=0; i<80; i++) fs.push({x: Math.random()*w, y: Math.random()*h, r: Math.random()*3+1, d: Math.random()*0.5+0.5}); function draw() { ctx.clearRect(0,0,w,h); ctx.fillStyle="rgba(255,255,255,0.6)"; ctx.beginPath(); for(let f of fs){ ctx.moveTo(f.x,f.y); ctx.arc(f.x,f.y,f.r, 0, Math.PI*2,true); } ctx.fill(); move(); } function move() { for(let f of fs){ f.y += f.d; if(f.y>h){ f.x=Math.random()*w; f.y=-10; } } } sInt = setInterval(draw, 33); }
 
-        if(user.is) { document.getElementById('auth-btns').style.display='none'; document.getElementById('account-btns').style.display='block'; myPureName = user.is.alias; m4_id = user.is.pub.substring(0,8); myFullName = `${myPureName}@${m4_id}`; isRegistered = true; }
-        document.getElementById('my-name-display').innerText = myFullName;
+        if(user.is) { document.getElementById('auth-btns').style.display='none'; document.getElementById('account-btns').style.display='block'; myName = user.is.alias; myHandle = user.is.pub.substring(0,8); }
+        document.getElementById('my-name-display').innerText = myName;
+        document.getElementById('my-handle-display').innerText = '@' + myHandle;
         document.body.setAttribute('data-theme', localStorage.getItem('m4_theme') || 'light');
         applySoft(localStorage.getItem('m4_soft')); applySnow(localStorage.getItem('m4_snow'));
+        setLanguage(localStorage.getItem('m4_lang') || 'en');
+        devLog("Mesh Ready.");
     </script>
 </body>
 </html>
