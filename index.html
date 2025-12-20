@@ -19,6 +19,7 @@
         }
 
         /* --- THEMES --- */
+        [data-theme="aliceblue"] { --bg: #f0f8ff; --panel: #e6f2ff; --border: #b0c4de; --text: #2f4f4f; --text-dim: #708090; --hl: #4682b4; --hl-border: #4682b4; --warn: #cd5c5c; --input-bg: #f0f8ff; --msg-mine: #4682b4; --msg-other: #e6f2ff; --mention: #ff8c00; }
         [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-border: #0f0; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; }
         [data-theme="coffee"] { --bg: #fdf6e3; --panel: #eee8d5; --border: #d3af86; --text: #5d4037; --text-dim: #a1887f; --hl: #8d6e63; --hl-border: #8d6e63; --warn: #c62828; --input-bg: #fdf6e3; --msg-mine: #8d6e63; --msg-other: #efebe9; --mention: #bf360c; }
         [data-theme="coffee-dark"] { --bg: #2b2118; --panel: #1f1610; --border: #3e2f24; --text: #dcc8b8; --text-dim: #8d6e63; --hl: #a67c52; --hl-border: #a67c52; --warn: #c62828; --input-bg: #1f1610; --msg-mine: #543d2e; --msg-other: #3e2f24; --mention: #ffccbc; }
@@ -35,12 +36,8 @@
         body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
         *:focus-visible { outline: 2px solid var(--hl); outline-offset: -2px; z-index: 10; }
 
-        /* --- SIDEBAR (Mobile Full Screen Fix) --- */
-        #sidebar { 
-            width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); 
-            display: flex; flex-direction: column; padding: 20px; z-index: 2000; height: 100dvh; transition: transform 0.3s; 
-        }
-        
+        /* --- UI COMPONENTS --- */
+        #sidebar { width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); display: flex; flex-direction: column; padding: 20px; z-index: 1000; height: 100dvh; transition: transform 0.3s; }
         #logo-container { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 25px; }
         #logo-icon { width: 45px; height: 45px; background: var(--hl) !important; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5em; flex-shrink: 0; transition: background 0.3s; }
         #logo-text { font-weight: 900; font-size: 1.3em; letter-spacing: -1px; }
@@ -56,7 +53,7 @@
         #main { flex-grow: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; height: 100%; overflow: hidden; }
         #header { height: 60px; background: var(--panel); border-bottom: 2px var(--border-style) var(--border); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
         #header-left { display: flex; align-items: center; }
-        #hamburger { display: none; cursor: pointer; font-size: 1.5em; margin-right: 15px; z-index: 2001; }
+        #hamburger { display: none; cursor: pointer; font-size: 1.5em; margin-right: 15px; }
         
         #net-status { width: 12px; height: 12px; border-radius: 50%; background: #ff9500; box-shadow: 0 0 5px #ff9500; transition: 0.3s; margin-left: 10px; cursor: pointer; }
         #net-status.connected { background: var(--hl) !important; box-shadow: 0 0 8px var(--hl) !important; }
@@ -91,8 +88,7 @@
         #snow-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999; display: none; }
 
         @media (max-width: 768px) {
-            /* Mobile Full Screen Sidebar */
-            #sidebar { position: fixed; width: 100%; transform: translateX(-100%); left:0; top:0; }
+            #sidebar { position: fixed; transform: translateX(-100%); width: 280px; }
             #sidebar.open { transform: translateX(0); }
             #hamburger { display: block; }
         }
@@ -142,7 +138,10 @@
                 <div id="hamburger" onclick="toggleSidebar()">☰</div>
                 <div id="header-text">#GENERAL</div>
             </div>
-            <div id="net-status" title="Status (Click for Logs)" onclick="openModal('network')"></div>
+            <div id="net-status-wrap" title="Status (Click for Logs)" onclick="openModal('network')">
+                <div id="net-count"></div>
+                <div id="net-status"></div>
+            </div>
         </div>
         <div id="chat"></div>
         <form id="controls-form" onsubmit="event.preventDefault(); send();">
@@ -191,36 +190,14 @@
     </div>
 
     <script>
-        // --- 1. STATE & CONFIG ---
-        let myHandle = localStorage.getItem('m4_handle');
-        if (!myHandle || myHandle === 'undefined') {
-            myHandle = Math.random().toString(36).substring(2, 10);
-            localStorage.setItem('m4_handle', myHandle);
-        }
-
-        let myName = localStorage.getItem('m4_name');
-        if (!myName || myName === 'undefined') {
-            myName = "Guest";
-            localStorage.setItem('m4_name', myName);
-        }
-
-        let currentLang = localStorage.getItem('m4_lang') || 'en';
-        let currentTarget = "#GENERAL";
-        let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
-
-        // Translations
+        // --- CONFIG ---
+        const themeColors = { 'aliceblue': '#f0f8ff', 'light': '#007aff', 'dark': '#0f0', 'coffee': '#8d6e63', 'coffee-dark': '#a67c52', 'emerald': '#2ecc71', 'midnight': '#5080ff', 'amber': '#ffbf00', 'solarized': '#268bd2', 'blue': '#00e5ff', 'purple': '#bf5af2', 'crimson': '#ff4d4d' };
         const trans = {
             en: { help: "COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\nconnect [url]: Add relay\nrelay list: Show status\nstats: Network stats\nrus/eng: Language", send: "SEND" },
             ru: { help: "КОМАНДЫ:\n\nsoft: Углы (вкл/выкл)\nsnow: Снег (вкл/выкл)\nclean: Сброс данных\ntheme: Темы\nname [Имя]: Сменить имя\nconnect [url]: Добавить реле\nrelay list: Статус сети\nstats: Статистика\nrus/eng: Язык", send: "ОТПРАВИТЬ" }
         };
-        const themeColors = { 'light': '#007aff', 'dark': '#0f0', 'coffee': '#8d6e63', 'coffee-dark': '#a67c52', 'emerald': '#2ecc71', 'midnight': '#5080ff', 'amber': '#ffbf00', 'solarized': '#268bd2', 'blue': '#00e5ff', 'purple': '#bf5af2', 'crimson': '#ff4d4d' };
 
-        // --- 2. BOOTSTRAP UI IMMEDIATELY ---
-        // Prevents "Guest" flicker by setting text before network loads
-        document.getElementById('my-name-display').innerText = myName;
-        document.getElementById('my-handle-display').innerText = '@' + myHandle;
-
-        // --- 3. CORE FUNCTIONS ---
+        // --- HELPERS ---
         function updateFavicon(theme) {
             const color = themeColors[theme] || '#007aff';
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${color}"/><text y=".9em" font-size="70" fill="#fff" font-family="monospace" font-weight="bold" x="15">M4</text></svg>`;
@@ -249,14 +226,18 @@
         }
         function setLanguage(lang) {
             const t = trans[lang] || trans.en; localStorage.setItem('m4_lang', lang);
-            const btnSend = document.getElementById('send-btn'); if(btnSend) btnSend.innerText = t.send;
+            const lblUsers = document.getElementById('lbl-users');
+            const btnSend = document.getElementById('send-btn');
+            if(lblUsers) lblUsers.innerText = t.users_lbl || "USERS";
+            if(btnSend) btnSend.innerText = t.send;
         }
 
-        // --- 4. NETWORK INIT ---
+        // --- INIT ---
         const urlParams = new URLSearchParams(window.location.search);
         const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
         const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
         const urlCmd = urlParams.get('cmd');
+        let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
         if (urlRelay) {
             const cleanUrl = normalizePeerUrl(urlRelay);
             if (!savedPeers.includes(cleanUrl)) { savedPeers.push(cleanUrl); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); alert("New Relay Added: " + cleanUrl); }
@@ -267,10 +248,31 @@
         const gun = Gun({ peers: allPeers, localStorage: true, radisk: true });
         if (urlRelay || urlCmd) window.history.replaceState({}, document.title, window.location.pathname);
 
-        // --- 5. NETWORK HANDLERS ---
+        // --- STATE ---
+        let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
+        let myName = localStorage.getItem('m4_name') || "Guest";
+        let currentLang = localStorage.getItem('m4_lang') || 'en';
+        let currentTarget = "#GENERAL";
+        localStorage.setItem('m4_handle', myHandle);
+
+        // --- NETWORK UI ---
         const statusEl = document.getElementById('net-status');
-        gun.on('hi', (peer) => { statusEl.classList.add('connected'); statusEl.title = `Connected: ${peer.url}`; log(`CONNECTED: ${peer.url || 'Peer'}`); if(peer.url) updateQR(peer.url); });
-        gun.on('bye', (peer) => { log(`DISCONNECTED: ${peer.url}`); });
+        const countEl = document.getElementById('net-count');
+        let connectedCount = 0;
+        gun.on('hi', (peer) => { 
+            connectedCount++; 
+            statusEl.classList.add('connected'); 
+            countEl.innerText = `(${connectedCount})`;
+            statusEl.title = `Connected: ${peer.url}`; 
+            log(`CONNECTED: ${peer.url || 'Peer'}`); 
+            if(peer.url) updateQR(peer.url); 
+        });
+        gun.on('bye', (peer) => { 
+            connectedCount = Math.max(0, connectedCount-1);
+            countEl.innerText = connectedCount > 0 ? `(${connectedCount})` : '';
+            if(connectedCount===0) statusEl.classList.remove('connected');
+            log(`DISCONNECTED: ${peer.url}`); 
+        });
         function updateQR(url) { new QRious({ element: document.getElementById('qr-code'), value: window.location.origin + window.location.pathname + '#c=' + btoa(url), size: 150 }); }
         function copyHashLink() {
             const activeUrl = savedPeers.length > 0 ? savedPeers[savedPeers.length-1] : peers[0];
@@ -283,12 +285,19 @@
             if(url) { savedPeers.push(url); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); gun.opt({ peers: [url] }); log(`Added: ${url}`); updateQR(url); document.getElementById('new-peer-url').value = ''; }
         }
 
-        // --- 6. USER LIST & SORTING ---
+        // --- USER LIST & SORTING ---
         const usersState = {}; 
+
         gun.get('m4_users_v24').map().on((user, handle) => {
-            if(!user || !user.name) { delete usersState[handle]; renderUsers(); return; }
-            if (Date.now() - user.lastSeen > 2592000000) { gun.get('m4_users_v24').get(handle).put(null); delete usersState[handle]; } 
-            else { usersState[handle] = user; }
+            if(!user || !user.name) { 
+                delete usersState[handle]; renderUsers(); return; 
+            }
+            if (Date.now() - user.lastSeen > 2592000000) {
+                gun.get('m4_users_v24').get(handle).put(null); 
+                delete usersState[handle];
+            } else {
+                usersState[handle] = user;
+            }
             renderUsers();
         });
 
@@ -337,19 +346,32 @@
             }, 50);
         }
 
-        // --- 7. CHAT LOGIC ---
+        // --- CHAT LOGIC ---
         const bc = new BroadcastChannel('m4_v24_sync');
         bc.onmessage = (ev) => { if(ev.data && ev.data.type==='msg' && ev.data.room===currentTarget && !document.getElementById('msg-'+(ev.data.data.localId||ev.data.data.time))) drawMessage(ev.data.data); };
 
         function send() {
             const i = document.getElementById('message'); if(!i.value) return;
             const d = { from: myName, handle: myHandle, msg: i.value, time: Date.now(), channel: currentTarget, localId: Date.now() };
-            drawMessage(d, true); bc.postMessage({type:'msg', room: currentTarget, data: d}); gun.get('m4_mesh_v24').get(currentTarget).set(d); i.value = "";
+            drawMessage(d, true); 
+            bc.postMessage({type:'msg', room: currentTarget, data: d}); 
+            
+            // KEY FIX: Strip '#' for Database Keys if room
+            const dbKey = currentTarget.startsWith('#') ? currentTarget.replace('#', '') : currentTarget;
+            gun.get('m4_mesh_v24').get(dbKey).set(d); 
+            i.value = "";
         }
+        
         function syncRoom(roomName) {
             document.getElementById('chat').innerHTML = ""; 
-            gun.get('m4_mesh_v24').get(roomName).map().on((d) => { if(d && d.channel===roomName && !document.getElementById('msg-'+(d.localId||d.time))) drawMessage(d); });
+            // KEY FIX: Strip '#' for Database Keys if room
+            const dbKey = roomName.startsWith('#') ? roomName.replace('#', '') : roomName;
+            
+            gun.get('m4_mesh_v24').get(dbKey).map().on((d) => { 
+                if(d && d.channel===roomName && !document.getElementById('msg-'+(d.localId||d.time))) drawMessage(d); 
+            });
         }
+        
         function drawMessage(d, isP=false) {
             if(d.channel !== currentTarget) return;
             const div = document.createElement('div');
@@ -358,19 +380,21 @@
             div.innerHTML = (d.handle!==myHandle ? `<span style="font-size:0.75em;display:block;opacity:0.6;margin-bottom:4px;font-weight:900;">${d.from}</span>` : "") + d.msg.replace(new RegExp(`@${myHandle}\\b`,'gi'), `<span class="mention">@${myHandle}</span>`);
             const chat = document.getElementById('chat'); chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
         }
+        
         function switchChannel(t) { 
             currentTarget = t; document.getElementById('header-text').innerText = t; 
             renderUsers(); // Update highlights
             document.querySelectorAll('.active-chan').forEach(e => e.classList.remove('active-chan'));
             if(t === '#GENERAL') document.getElementById('room-GENERAL').classList.add('active-chan');
-            if(window.innerWidth <= 768) toggleSidebar();
+            if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
             syncRoom(t);
         }
 
-        // --- 8. PRESENCE & UTILS ---
+        // --- PRESENCE ---
         function announcePresence() { gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()}); }
         announcePresence(); setInterval(announcePresence, 10000);
 
+        // --- UI & HOTKEYS ---
         document.addEventListener('keydown', (e) => {
             if (e.altKey && e.key === 'c') { e.preventDefault(); document.getElementById('message').focus(); }
             if (e.altKey && e.key === 'm') { e.preventDefault(); document.getElementById('code-in').focus(); }
@@ -397,7 +421,7 @@
         window.cmd = (c) => runCode(c); 
         function runCode(manual = null) {
             const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
-            const themes = ['light','dark','blue','purple','crimson','emerald','midnight','coffee','coffee-dark','solarized','amber'];
+            const themes = ['aliceblue','light','dark','blue','purple','crimson','emerald','midnight','coffee','coffee-dark','solarized','amber'];
             if(themes.includes(c)) { document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); updateFavicon(c); }
             else if(c.startsWith('connect ')) { let url = c.split(' ')[1]; if(url) { savedPeers.push(normalizePeerUrl(url)); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); gun.opt({ peers: [normalizePeerUrl(url)] }); } }
             else if(c.startsWith('name ')) { finishRename('name'); myName = c.split(' ').slice(1).join(' '); localStorage.setItem('m4_name', myName); document.getElementById('my-name-display').innerText = myName; announcePresence(); }
@@ -414,6 +438,8 @@
         // --- 9. BOOT ---
         const savedTheme = localStorage.getItem('m4_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme); updateFavicon(savedTheme); 
+        document.getElementById('my-name-display').innerText = myName;
+        document.getElementById('my-handle-display').innerText = '@' + myHandle;
         applySoft(localStorage.getItem('m4_soft') === 'true');
         applySnow(localStorage.getItem('m4_snow') === 'true');
         setLanguage(localStorage.getItem('m4_lang') || 'en');
