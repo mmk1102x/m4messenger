@@ -5,19 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>M4messenger</title>
     <link rel="icon" id="dynamic-favicon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Crect%20width%3D%22100%22%20height%3D%22100%22%20rx%3D%2220%22%20fill%3D%22%23007aff%22%2F%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2270%22%20fill%3D%22%23fff%22%20font-family%3D%22monospace%22%20font-weight%3D%22bold%22%20x%3D%2215%22%3EM4%3C%2Ftext%3E%3C%2Fsvg%3E">
+    <!-- QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <!-- Gun.js -->
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/lib/webrtc.js"></script>
     <style>
-        /* --- CORE VARIABLES --- */
+        /* --- VARIABLES --- */
         :root { 
             --bg: #ffffff; --panel: #f2f2f7; --border: #d1d1d6; --text: #000; --text-dim: #8e8e93; 
             --hl: #007aff; --hl-border: #007aff; --warn: #ff3b30; --input-bg: #fff; 
             --msg-mine: #007aff; --msg-other: #e9e9eb; --mention: #ff9500;
-            --radius: 0px; --border-style: solid;
+            --radius: 0px; 
+            --border-style: solid;
         }
-
         /* --- THEMES --- */
         [data-theme="aliceblue"] { --bg: #f0f8ff; --panel: #e6f2ff; --border: #b0c4de; --text: #2f4f4f; --text-dim: #708090; --hl: #4682b4; --hl-border: #4682b4; --warn: #cd5c5c; --input-bg: #f0f8ff; --msg-mine: #4682b4; --msg-other: #e6f2ff; --mention: #ff8c00; }
         [data-theme="dark"] { --bg: #000; --panel: #1c1c1e; --border: #333; --text: #0f0; --text-dim: #050; --hl: #0f0; --hl-border: #0f0; --warn: #f00; --input-bg: #000; --msg-mine: #050; --msg-other: #111; --mention: #f80; }
@@ -36,7 +38,6 @@
         body { font-family: monospace; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100dvh; width: 100vw; overflow: hidden; transition: 0.3s; position: relative; }
         *:focus-visible { outline: 2px solid var(--hl); outline-offset: -2px; z-index: 10; }
 
-        /* --- UI COMPONENTS --- */
         #sidebar { width: 300px; min-width: 300px; background: var(--panel); border-right: 2px var(--border-style) var(--border); display: flex; flex-direction: column; padding: 20px; z-index: 1000; height: 100dvh; transition: transform 0.3s; }
         #logo-container { display: flex; align-items: center; justify-content: flex-start; gap: 12px; margin-bottom: 25px; }
         #logo-icon { width: 45px; height: 45px; background: var(--hl) !important; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.5em; flex-shrink: 0; transition: background 0.3s; }
@@ -55,13 +56,14 @@
         #header-left { display: flex; align-items: center; }
         #hamburger { display: none; cursor: pointer; font-size: 1.5em; margin-right: 15px; }
         
-        #net-status { width: 12px; height: 12px; border-radius: 50%; background: #ff9500; box-shadow: 0 0 5px #ff9500; transition: 0.3s; margin-left: 10px; cursor: pointer; }
+        #net-status-wrap { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        #net-count { font-size: 0.7em; color: var(--text-dim); font-weight: bold; }
+        #net-status { width: 12px; height: 12px; border-radius: 50%; background: #ff9500; box-shadow: 0 0 5px #ff9500; transition: 0.3s; }
         #net-status.connected { background: var(--hl) !important; box-shadow: 0 0 8px var(--hl) !important; }
         
         #net-console { background: #000; color: #0f0; font-family: monospace; padding: 10px; height: 150px; overflow-y: auto; font-size: 0.7em; margin-bottom: 10px; border-radius: 4px; border: 1px solid #333; }
 
         .section-title { color: var(--text-dim); font-size: 0.75em; margin: 15px 0 8px 0; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .scroll-list { overflow-y: auto; flex: 1; border: 2px var(--border-style) var(--border); background: var(--input-bg); margin-bottom: 10px; }
         .list-item { padding: 12px; cursor: pointer; border-bottom: 1px var(--border-style) var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; transition: 0.2s; }
         .list-item:hover, .list-item:focus { background: var(--msg-other); }
         .active-chan { background: var(--hl) !important; color: #fff !important; font-weight: 800; }
@@ -138,7 +140,7 @@
                 <div id="hamburger" onclick="toggleSidebar()">☰</div>
                 <div id="header-text">#GENERAL</div>
             </div>
-            <div id="net-status-wrap" title="Status (Click for Logs)" onclick="openModal('network')">
+            <div id="net-status-wrap" title="Server Status" onclick="openModal('network')">
                 <div id="net-count"></div>
                 <div id="net-status"></div>
             </div>
@@ -153,23 +155,14 @@
     <!-- MODALS -->
     <div id="modal-network" class="modal">
         <div class="modal-box">
-            <h3>NETWORK</h3>
+            <h3>SERVER STATUS</h3>
             <div id="net-console"></div>
-            <div style="font-size:0.8em; margin:10px 0;"><strong>Connect via IP/URL:</strong></div>
-            <div style="display:flex; gap:5px; margin-bottom:15px;">
-                <input id="new-peer-url" placeholder="wss://... or IP:PORT" style="flex:1;">
-                <button class="btn" style="width:auto;" onclick="addPeer()">CONNECT</button>
+            <div style="font-size:0.8em; margin:10px 0; text-align: center;">
+                <strong>Connected to:</strong><br>
+                <code id="server-url-display">...</code>
             </div>
-            <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
-            <div style="font-size:0.8em; margin-bottom:5px;"><strong>Share Connection (QR/Hash):</strong></div>
-            <div style="display:flex; justify-content:center; margin:10px 0; background:#fff; padding:10px; border-radius:4px;">
-                <canvas id="qr-code" style="width:150px; height:150px;"></canvas>
-            </div>
-            <div style="text-align:center;">
-                <button class="btn" style="font-size:0.8em; padding:5px 10px;" onclick="copyHashLink()">COPY HASH LINK</button>
-                <div id="share-feedback" style="font-size:0.7em; margin-top:5px; height:1.2em;"></div>
-            </div>
-            <button class="btn" style="margin-top:15px;" onclick="closeModals()">CLOSE</button>
+            <button class="btn" onclick="checkServerHealth()">CHECK HEALTH</button>
+            <button class="btn" style="margin-top:10px;" onclick="closeModals()">CLOSE</button>
         </div>
     </div>
     
@@ -190,11 +183,18 @@
     </div>
 
     <script>
+        /*
+         * SERVER REQUIREMENTS (server.js):
+         * 1. Must serve index.html at root (/).
+         * 2. Must handle WebSocket upgrades at /gun.
+         * 3. Should respond to GET /health with {status:"ok"} (Optional but good).
+         */
+
         // --- CONFIG ---
         const themeColors = { 'aliceblue': '#f0f8ff', 'light': '#007aff', 'dark': '#0f0', 'coffee': '#8d6e63', 'coffee-dark': '#a67c52', 'emerald': '#2ecc71', 'midnight': '#5080ff', 'amber': '#ffbf00', 'solarized': '#268bd2', 'blue': '#00e5ff', 'purple': '#bf5af2', 'crimson': '#ff4d4d' };
         const trans = {
-            en: { help: "COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\nconnect [url]: Add relay\nrelay list: Show status\nstats: Network stats\nrus/eng: Language", send: "SEND" },
-            ru: { help: "КОМАНДЫ:\n\nsoft: Углы (вкл/выкл)\nsnow: Снег (вкл/выкл)\nclean: Сброс данных\ntheme: Темы\nname [Имя]: Сменить имя\nconnect [url]: Добавить реле\nrelay list: Статус сети\nstats: Статистика\nrus/eng: Язык", send: "ОТПРАВИТЬ" }
+            en: { help: "COMMANDS:\n\nsoft: Toggle corners\nsnow: Toggle effect\nclean: Wipe data\ntheme: Visual picker\nname [Name]: Change name\nstats: Server stats\nrus/eng: Language", send: "SEND", users_lbl: "USERS" },
+            ru: { help: "КОМАНДЫ:\n\nsoft: Углы\nsnow: Снег\nclean: Сброс\ntheme: Темы\nname [Имя]: Имя\nstats: Статус сервера\nrus/eng: Язык", send: "ОТПРАВИТЬ", users_lbl: "ЛЮДИ" }
         };
 
         // --- HELPERS ---
@@ -202,12 +202,6 @@
             const color = themeColors[theme] || '#007aff';
             const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="${color}"/><text y=".9em" font-size="70" fill="#fff" font-family="monospace" font-weight="bold" x="15">M4</text></svg>`;
             document.getElementById('dynamic-favicon').href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-        }
-        function normalizePeerUrl(url) {
-            url = url.trim(); if(!url) return '';
-            if(!url.startsWith('http') && !url.startsWith('ws')) url = 'https://' + url;
-            if(!url.endsWith('/gun')) url = url.replace(/\/$/, '') + '/gun';
-            return url;
         }
         function log(msg) {
             const c = document.getElementById('net-console');
@@ -234,19 +228,19 @@
 
         // --- INIT ---
         const urlParams = new URLSearchParams(window.location.search);
-        const hashConnect = location.hash.startsWith('#c=') ? atob(location.hash.split('#c=')[1]) : null;
-        const urlRelay = urlParams.get('relay') || urlParams.get('connect') || hashConnect;
         const urlCmd = urlParams.get('cmd');
-        let savedPeers = JSON.parse(localStorage.getItem('m4_custom_peers') || '[]');
-        if (urlRelay) {
-            const cleanUrl = normalizePeerUrl(urlRelay);
-            if (!savedPeers.includes(cleanUrl)) { savedPeers.push(cleanUrl); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); alert("New Relay Added: " + cleanUrl); }
-        }
-        const peers = ['https://m4-backend.onrender.com/gun', 'https://relay.peer.ooo/gun', 'https://plato.design/gun'];
-        const allPeers = [...peers, ...savedPeers];
-        log(`Init Gun with ${allPeers.length} peers...`);
-        const gun = Gun({ peers: allPeers, localStorage: true, radisk: true });
-        if (urlRelay || urlCmd) window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // SERVER MODE: Force connection to Origin
+        let serverUrl = window.location.origin + '/gun';
+        // Handle file:// protocol for local dev
+        if (window.location.protocol === 'file:') serverUrl = 'http://localhost:8765/gun';
+
+        log(`Connecting to SINGLE SERVER: ${serverUrl}`);
+        document.getElementById('server-url-display').innerText = serverUrl;
+
+        const gun = Gun({ peers: [serverUrl], localStorage: true, radisk: true });
+
+        if (urlCmd) window.history.replaceState({}, document.title, window.location.pathname);
 
         // --- STATE ---
         let myHandle = localStorage.getItem('m4_handle') || Math.random().toString(36).substring(2, 10);
@@ -255,49 +249,33 @@
         let currentTarget = "#GENERAL";
         localStorage.setItem('m4_handle', myHandle);
 
-        // --- NETWORK UI ---
+        // --- NETWORK UI & HEALTH CHECK ---
         const statusEl = document.getElementById('net-status');
         const countEl = document.getElementById('net-count');
-        let connectedCount = 0;
+        
         gun.on('hi', (peer) => { 
-            connectedCount++; 
             statusEl.classList.add('connected'); 
-            countEl.innerText = `(${connectedCount})`;
-            statusEl.title = `Connected: ${peer.url}`; 
-            log(`CONNECTED: ${peer.url || 'Peer'}`); 
-            if(peer.url) updateQR(peer.url); 
+            log(`CONNECTED`); 
         });
         gun.on('bye', (peer) => { 
-            connectedCount = Math.max(0, connectedCount-1);
-            countEl.innerText = connectedCount > 0 ? `(${connectedCount})` : '';
-            if(connectedCount===0) statusEl.classList.remove('connected');
-            log(`DISCONNECTED: ${peer.url}`); 
+            statusEl.classList.remove('connected');
+            log(`DISCONNECTED`); 
         });
-        function updateQR(url) { new QRious({ element: document.getElementById('qr-code'), value: window.location.origin + window.location.pathname + '#c=' + btoa(url), size: 150 }); }
-        function copyHashLink() {
-            const activeUrl = savedPeers.length > 0 ? savedPeers[savedPeers.length-1] : peers[0];
-            navigator.clipboard.writeText(window.location.origin + window.location.pathname + '#c=' + btoa(activeUrl)).then(() => {
-                document.getElementById('share-feedback').innerText = "Link Copied!"; setTimeout(() => document.getElementById('share-feedback').innerText = "", 2000);
-            });
-        }
-        function addPeer() {
-            let url = normalizePeerUrl(document.getElementById('new-peer-url').value);
-            if(url) { savedPeers.push(url); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); gun.opt({ peers: [url] }); log(`Added: ${url}`); updateQR(url); document.getElementById('new-peer-url').value = ''; }
+
+        function checkServerHealth() {
+            log("Pinging /health...");
+            fetch(window.location.origin + '/health')
+                .then(r => r.text())
+                .then(t => log("Server Response: " + t))
+                .catch(e => log("Health Check Failed (Server might not have /health route)"));
         }
 
-        // --- USER LIST & SORTING ---
+        // --- USER LIST ---
         const usersState = {}; 
-
         gun.get('m4_users_v24').map().on((user, handle) => {
-            if(!user || !user.name) { 
-                delete usersState[handle]; renderUsers(); return; 
-            }
-            if (Date.now() - user.lastSeen > 2592000000) {
-                gun.get('m4_users_v24').get(handle).put(null); 
-                delete usersState[handle];
-            } else {
-                usersState[handle] = user;
-            }
+            if(!user || !user.name) { delete usersState[handle]; renderUsers(); return; }
+            if (Date.now() - user.lastSeen > 2592000000) { gun.get('m4_users_v24').get(handle).put(null); delete usersState[handle]; } 
+            else { usersState[handle] = user; }
             renderUsers();
         });
 
@@ -346,17 +324,16 @@
             }, 50);
         }
 
-        // --- CHAT LOGIC ---
+        // --- CHAT ---
         const bc = new BroadcastChannel('m4_v24_sync');
         bc.onmessage = (ev) => { if(ev.data && ev.data.type==='msg' && ev.data.room===currentTarget && !document.getElementById('msg-'+(ev.data.data.localId||ev.data.data.time))) drawMessage(ev.data.data); };
 
         function send() {
             const i = document.getElementById('message'); if(!i.value) return;
             const d = { from: myName, handle: myHandle, msg: i.value, time: Date.now(), channel: currentTarget, localId: Date.now() };
-            drawMessage(d, true); 
-            bc.postMessage({type:'msg', room: currentTarget, data: d}); 
+            drawMessage(d, true); bc.postMessage({type:'msg', room: currentTarget, data: d}); 
             
-            // KEY FIX: Strip '#' for Database Keys if room
+            // KEY FIX: Strip # for DB key
             const dbKey = currentTarget.startsWith('#') ? currentTarget.replace('#', '') : currentTarget;
             gun.get('m4_mesh_v24').get(dbKey).set(d); 
             i.value = "";
@@ -364,12 +341,8 @@
         
         function syncRoom(roomName) {
             document.getElementById('chat').innerHTML = ""; 
-            // KEY FIX: Strip '#' for Database Keys if room
             const dbKey = roomName.startsWith('#') ? roomName.replace('#', '') : roomName;
-            
-            gun.get('m4_mesh_v24').get(dbKey).map().on((d) => { 
-                if(d && d.channel===roomName && !document.getElementById('msg-'+(d.localId||d.time))) drawMessage(d); 
-            });
+            gun.get('m4_mesh_v24').get(dbKey).map().on((d) => { if(d && d.channel===roomName && !document.getElementById('msg-'+(d.localId||d.time))) drawMessage(d); });
         }
         
         function drawMessage(d, isP=false) {
@@ -383,9 +356,12 @@
         
         function switchChannel(t) { 
             currentTarget = t; document.getElementById('header-text').innerText = t; 
-            renderUsers(); // Update highlights
+            renderUsers(); 
             document.querySelectorAll('.active-chan').forEach(e => e.classList.remove('active-chan'));
             if(t === '#GENERAL') document.getElementById('room-GENERAL').classList.add('active-chan');
+            else {
+                const u = document.getElementById('peer-'+t); if(u) u.classList.add('active-chan');
+            }
             if(window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
             syncRoom(t);
         }
@@ -394,7 +370,7 @@
         function announcePresence() { gun.get('m4_users_v24').get(myHandle).put({name: myName, lastSeen: Date.now()}); }
         announcePresence(); setInterval(announcePresence, 10000);
 
-        // --- UI & HOTKEYS ---
+        // --- UI ---
         document.addEventListener('keydown', (e) => {
             if (e.altKey && e.key === 'c') { e.preventDefault(); document.getElementById('message').focus(); }
             if (e.altKey && e.key === 'm') { e.preventDefault(); document.getElementById('code-in').focus(); }
@@ -402,7 +378,7 @@
         });
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
         function closeModals() { document.querySelectorAll('.modal').forEach(e => e.style.display='none'); document.getElementById('code-in').focus(); }
-        function openModal(id) { closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; if(id==='network') updateQR(savedPeers.length>0?savedPeers[savedPeers.length-1]:peers[0]); }
+        function openModal(id) { closeModals(); document.getElementById('modal-'+id).style.display = 'flex'; }
         
         function startRenaming(type) { 
             const el = document.getElementById(type === 'name' ? 'my-name-display' : 'my-handle-display');
@@ -423,9 +399,8 @@
             const i = document.getElementById('code-in'); const raw = (manual || i.value).trim(); const c = raw.toLowerCase();
             const themes = ['aliceblue','light','dark','blue','purple','crimson','emerald','midnight','coffee','coffee-dark','solarized','amber'];
             if(themes.includes(c)) { document.body.setAttribute('data-theme', c); localStorage.setItem('m4_theme', c); updateFavicon(c); }
-            else if(c.startsWith('connect ')) { let url = c.split(' ')[1]; if(url) { savedPeers.push(normalizePeerUrl(url)); localStorage.setItem('m4_custom_peers', JSON.stringify(savedPeers)); gun.opt({ peers: [normalizePeerUrl(url)] }); } }
             else if(c.startsWith('name ')) { finishRename('name'); myName = c.split(' ').slice(1).join(' '); localStorage.setItem('m4_name', myName); document.getElementById('my-name-display').innerText = myName; announcePresence(); }
-            else if(c === 'relay list' || c === 'stats') openModal('network');
+            else if(c === 'stats') openModal('network');
             else if(c === 'clean') { localStorage.clear(); location.reload(); }
             else if(c === 'help') { document.getElementById('help-list').innerText = (trans[currentLang] || trans.en).help; openModal('help'); }
             else if(c === 'rus' || c === 'eng') { currentLang = c === 'rus' ? 'ru' : 'en'; setLanguage(currentLang); }
@@ -435,7 +410,7 @@
             if(i) i.value = ""; const fb = document.getElementById('cmd-feedback'); if(fb) { fb.innerText = "OK"; setTimeout(()=>fb.innerText="", 2000); }
         }
 
-        // --- 9. BOOT ---
+        // --- BOOT ---
         const savedTheme = localStorage.getItem('m4_theme') || 'light';
         document.body.setAttribute('data-theme', savedTheme); updateFavicon(savedTheme); 
         document.getElementById('my-name-display').innerText = myName;
